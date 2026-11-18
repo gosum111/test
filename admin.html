@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ระบบจัดการหลังบ้าน</title>
+<link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--p:#6f4c9b;--p2:#efe8f7;--g:#4b7d26;--bg:#f5f4f8;--card:#fff;--ink:#222;--mut:#6b6b78;--line:#dddbe3;--red:#c0392b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"IBM Plex Sans Thai",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+button,input,select,textarea{font:inherit}
+.top{background:linear-gradient(135deg,#4e3274,#6f4c9b);color:#fff;padding:14px 16px}
+.top .in{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top h1{font-size:18px;flex:1}
+.top a,.top button{color:#fff;background:rgba(255,255,255,.15);border:0;border-radius:8px;padding:6px 12px;text-decoration:none;cursor:pointer;font-size:14px}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 60px}
+.login{max-width:360px;margin:80px auto;background:var(--card);padding:28px;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06)}
+.login h2{margin-bottom:16px}
+label{display:block;font-size:14px;font-weight:500;margin-bottom:12px}
+input,select,textarea{display:block;width:100%;margin-top:4px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:#fff}
+textarea{resize:vertical}
+.btn{border:0;border-radius:8px;padding:9px 18px;cursor:pointer;background:var(--p);color:#fff;font-weight:500}
+.btn.ghost{background:var(--p2);color:var(--p)}
+.btn.red{background:#fbe9e7;color:var(--red)}
+.btn.sm{padding:5px 12px;font-size:13px}
+.err{color:var(--red);font-size:14px;min-height:22px}
+.tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:7px 18px;cursor:pointer}
+.tabs button.on{background:var(--p);border-color:var(--p);color:#fff}
+.tabs .cnt{display:inline-block;background:var(--red);color:#fff;border-radius:99px;font-size:12px;padding:0 7px;margin-left:4px}
+.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+.list{display:flex;flex-direction:column;gap:10px}
+.item{background:var(--card);border-radius:12px;padding:12px;display:flex;gap:14px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.item .th{width:84px;height:60px;border-radius:8px;background:var(--p2) center/cover;flex:none}
+.item .tx{flex:1;min-width:0}
+.item h3{font-size:15px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.item small{color:var(--mut)}
+.item .act{display:flex;gap:6px;flex:none}
+.msg{background:var(--card);border-radius:12px;padding:14px 16px;border-left:4px solid var(--p)}
+.msg.read{border-left-color:var(--line);opacity:.8}
+.msg .meta{font-size:13px;color:var(--mut);margin-bottom:6px}
+.msg p{white-space:pre-wrap;margin:6px 0}
+.empty{text-align:center;color:var(--mut);padding:40px}
+[hidden]{display:none!important}
+dialog{border:0;border-radius:14px;padding:0;margin:auto;width:min(1180px,calc(100% - 32px));max-height:calc(100vh - 32px);overflow:hidden}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.dlg-grid{display:grid;grid-template-columns:minmax(320px,440px) 1fr;height:min(800px,calc(100vh - 32px))}
+.dlg-form{padding:24px;overflow:auto;display:flex;flex-direction:column}
+.dlg-form #fields{flex:1}
+.dlg-pv{background:#ebe7f1;border-left:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+.pv-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;font-size:14px;color:var(--mut);border-bottom:1px solid var(--line);background:#f6f3fa}
+.pv-bar b{color:var(--ink);font-weight:600}
+.pv-bar .dot{width:8px;height:8px;border-radius:50%;background:#e0a100}
+.pv-bar .dot.saved{background:var(--g)}
+.dlg-pv iframe{flex:1;width:100%;border:0;background:#fff}
+.foot{position:sticky;bottom:-24px;background:var(--card);padding:12px 0 0}
+.head-act{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.head-act input{width:200px;margin:0}
+label.btn{display:inline-block;margin:0;font-size:15px}
+.imp{padding:24px;overflow:auto;max-height:calc(100vh - 32px)}
+.imp h2{margin-bottom:10px}
+.imp-steps{padding-left:20px;margin-bottom:16px;font-size:15px}
+.imp-steps li{margin-bottom:6px}
+.imp-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.imp-mode{display:grid;gap:6px;background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.imp-mode label{margin:0;font-weight:400}
+.imp-mode input{display:inline;width:auto;margin:0 4px 0 0}
+.sum{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.sum span{border-radius:8px;padding:6px 12px;font-size:14px;font-weight:600}
+.sum .ins{background:#e7f3df;color:var(--g)}.sum .upd{background:var(--p2);color:var(--p)}
+.sum .del{background:#fbe9e7;color:var(--red)}.sum .skp{background:#fff4d6;color:#8a6200}
+.tbl-wrap{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.tbl{border-collapse:collapse;width:100%;font-size:13px}
+.tbl th,.tbl td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.tbl th{position:sticky;top:0;background:#f6f3fa}
+.tbl td.clip{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tbl tr.bad td{background:#fff1ef}
+.tag{display:inline-block;border-radius:6px;padding:0 6px;font-size:12px;font-weight:600}
+.tag.insert{background:#e7f3df;color:var(--g)}.tag.update{background:var(--p2);color:var(--p)}.tag.skip{background:#fbe9e7;color:var(--red)}
+.st{display:inline-block;padding:0 8px;border-radius:20px;font-size:12px;font-weight:600;vertical-align:middle}
+.st.lv1{background:#fff3d6;color:#8a5a00}.st.lv2{background:#ffe2d1;color:#b4400f}.st.lv3{background:#c62828;color:#fff}
+.note{background:var(--p2);color:#4e3274;border-radius:10px;padding:10px 14px;font-size:14px;margin-bottom:14px}
+.grp{background:var(--card);border-radius:12px;padding:12px 16px;display:flex;gap:14px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.grp .tx{flex:1;min-width:0}
+.grp .names{color:var(--mut);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grp .badge{flex:none;background:var(--bg);border-radius:8px;padding:4px 10px;font-size:13px;font-weight:600;color:var(--p)}
+.grp .act{display:flex;gap:6px;flex:none}
+.warn{color:#b4400f}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2b2238;color:#fff;padding:10px 16px;border-radius:10px;display:flex;gap:14px;align-items:center;font-size:14px;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.toast button{background:none;border:0;color:#d9c8f3;font:inherit;font-weight:600;cursor:pointer;text-decoration:underline}
+@media (max-width:600px){.grp{flex-wrap:wrap}.grp .act{width:100%;justify-content:flex-end}}
+.rd{background:var(--card);border-radius:12px;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.rd summary{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-weight:600;list-style:none}
+.rd summary::-webkit-details-marker{display:none}
+.rd .cnt{border-radius:99px;padding:0 9px;font-size:13px;color:#fff}
+.rd.red .cnt{background:var(--red)}.rd.amber .cnt{background:#d68a00}.rd.ok .cnt{background:var(--g)}
+.rd ul{list-style:none;padding:0 16px 12px;margin:0}
+.rd li{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
+.rd .hint{padding:0 16px 8px;display:block}
+.rd code{background:var(--bg);padding:1px 6px;border-radius:5px;font-size:13px}
+.nf{background:var(--card);border-radius:12px;padding:18px 20px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.nf h3{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:17px}
+.nf h3 label{margin:0;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:500;margin-left:auto}
+.nf h3 input{width:auto;margin:0}
+.nf .two{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.nf details{font-size:14px;margin:4px 0 12px;background:var(--bg);border-radius:8px;padding:8px 12px}
+.nf details summary{cursor:pointer;font-weight:600;color:var(--p)}
+.nf details ol{padding-left:20px;margin-top:6px}
+.nf .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.nf .res{font-size:14px;font-weight:600}
+@media (max-width:600px){.nf .two{grid-template-columns:1fr}}
+#editForm .foot{flex-direction:column;align-items:stretch}
+.foot-btns{display:flex;justify-content:flex-end;gap:8px}
+.qr-inline{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:flex-end;margin-top:0;padding:10px 12px;background:var(--p2);border-radius:10px;font-size:14px}
+.qr-inline>span{font-weight:600;color:var(--p);margin-right:auto}
+.qr-inline label{margin:0;display:flex;align-items:center;gap:6px;font-weight:400}
+.qr-inline input[type=number]{width:70px;margin:0;padding:6px 8px}
+.qr-inline input[type=radio]{width:auto;margin:0}
+#qrOneDlg{width:min(720px,calc(100% - 32px))}
+.q1{display:grid;grid-template-columns:1fr 220px;gap:18px;align-items:start;margin-top:12px}
+.q1-label{display:flex;gap:14px;align-items:center;border:1.5px dashed #b9b2c6;border-radius:12px;padding:14px}
+.q1-tx{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+.q1-tx b{font-size:24px;line-height:1.2}
+.q1-tx i{color:#555;font-size:14px}
+.q1-tx small{font-size:13px;margin-top:6px}
+.q1-qr{width:150px;flex:none}
+.q1-qr svg{width:100%;height:auto;display:block}
+.q1-opt{display:grid;gap:10px}
+.q1-opt input[type=number]{width:100px}
+@media (max-width:600px){.q1{grid-template-columns:1fr}}
+.map-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px 12px;margin-top:6px}
+.map-grid label{margin:0;font-size:13px}
+.map-grid select{padding:6px 8px;font-size:13px}
+.map-grid label.need select{border-color:var(--red);background:#fff6f4}
+#impResult .imp-mode input[type=checkbox]{display:inline;width:auto;margin:0 4px 0 0}
+.ph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-height:380px;overflow:auto;padding:2px}
+.ph{border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13px;background:#fff}
+.ph img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:var(--p2)}
+.ph div{padding:6px 8px;line-height:1.35}
+.ph .fn{color:var(--mut);font-size:12px;word-break:break-all}
+.ph.no{border-color:#f0b9b1;background:#fff6f4}
+.ph.keep{opacity:.6}
+.ph.done{border-color:var(--g)}
+.ph.fail{border-color:var(--red)}
+.ph select{font-size:12px;padding:3px 6px;margin-top:4px}
+@media (max-width:860px){
+  .dlg-grid{grid-template-columns:1fr;height:auto;max-height:calc(100vh - 32px);overflow:auto}
+  .dlg-pv{border-left:0;border-top:1px solid var(--line)}
+  .dlg-pv iframe{height:520px;flex:none}
+  .foot{position:static}
+}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.imgrow{display:flex;gap:10px;align-items:flex-end}
+.imgrow label{flex:1;margin-bottom:0}
+.preview{width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin:8px 0 12px;display:none}
+.foot{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.hint{font-size:12px;color:var(--mut);font-weight:400}
+@media (max-width:600px){.row2{grid-template-columns:1fr}.item{flex-wrap:wrap}.item .act{width:100%;justify-content:flex-end}}
+</style>
+</head>
+<body>
+<div class="top"><div class="in">
+  <h1>🌿 ระบบจัดการหลังบ้าน · สวนสมุนไพร</h1>
+  <a href="index.html" target="_blank">ดูหน้าเว็บ ↗</a>
+  <button id="logout" hidden>ออกจากระบบ</button>
+</div></div>
+
+<!-- เข้าสู่ระบบ -->
+<form class="login" id="loginForm" hidden>
+  <h2>เข้าสู่ระบบแอดมิน</h2>
+  <label>รหัสผ่าน<input type="password" id="pw" required autocomplete="current-password"></label>
+  <label style="display:flex;gap:8px;align-items:center;font-weight:400;margin-top:-4px"><input type="checkbox" id="remember" style="width:auto;margin:0"> จดจำฉันไว้ในเครื่องนี้ 30 วัน <span class="hint">(ไม่ควรติ๊กในเครื่องสาธารณะ)</span></label>
+  <p class="err" id="loginErr"></p>
+  <button class="btn" style="width:100%">เข้าสู่ระบบ</button>
+</form>
+
+<!-- แดชบอร์ด -->
+<div class="wrap" id="app" hidden>
+  <div class="tabs" id="tabs">
+    <button data-t="readiness" class="on">✅ ความพร้อมของเว็บ</button>
+    <button data-t="herbs">สมุนไพร</button>
+    <button data-t="news">ข่าวสาร</button>
+    <button data-t="articles">บทความสมุนไพร</button>
+    <button data-t="workshops">Workshop</button>
+    <button data-t="brochures">โบรชัวร์</button>
+    <button data-t="activities">โครงการและกิจกรรม</button>
+    <button data-t="events">📅 ปฏิทิน</button>
+    <button data-t="services">บริการ (หน้าแรก)</button>
+    <button data-t="pages">📄 หน้าเนื้อหา</button>
+    <button data-t="messages">ข้อความติดต่อ <span class="cnt" id="unread" hidden></span></button>
+    <button data-t="notify">🔔 แจ้งเตือน</button>
+    <button data-t="trash">🗑 ถังขยะ</button>
+    <button data-t="backups">💾 สำรองข้อมูล</button>
+  </div>
+  <div class="head">
+    <h2 id="secTitle"></h2>
+    <div class="head-act">
+      <input id="q" type="search" placeholder="ค้นหาชื่อ…" hidden>
+      <button class="btn ghost" id="exportBtn" hidden>⬇ ดาวน์โหลดเป็นไฟล์</button>
+      <button class="btn ghost" id="importBtn" hidden>⬆ นำเข้าจากไฟล์</button>
+      <button class="btn ghost" id="photoBtn" hidden>🖼 อัปโหลดรูปหลายรูป</button>
+      <button class="btn ghost" id="qrBtn" hidden>🏷 พิมพ์ป้าย QR</button>
+      <button class="btn" id="backupBtn" hidden>💾 สำรองข้อมูลตอนนี้</button>
+      <button class="btn" id="addBtn">+ เพิ่มใหม่</button>
+    </div>
+  </div>
+  <div class="list" id="list"></div>
+</div>
+
+<dialog id="dlg">
+  <div class="dlg-grid">
+    <form id="editForm" class="dlg-form" method="dialog">
+      <h2 id="dlgTitle" style="margin-bottom:14px"></h2>
+      <div id="fields"></div>
+      <p class="err" id="formErr"></p>
+      <div class="foot">
+        <!-- สมุนไพร: บันทึกและพิมพ์ป้าย QR ในขั้นตอนเดียว -->
+        <div class="qr-inline" id="qrInline" hidden>
+          <span>🏷 ป้าย QR</span>
+          <label>จำนวนป้าย <input type="number" id="qrInlineCopies" min="1" max="50" value="1"></label>
+          <label><input type="radio" name="qrInlineSize" value="s" checked> มาตรฐาน</label>
+          <label><input type="radio" name="qrInlineSize" value="l"> ใหญ่</label>
+          <button type="button" class="btn" id="savePrintBtn">บันทึก + พิมพ์ป้าย QR</button>
+        </div>
+        <div class="foot-btns">
+          <button type="button" class="btn ghost" id="cancel">ยกเลิก</button>
+          <button class="btn" id="saveBtn">ยืนยันและบันทึก</button>
+        </div>
+      </div>
+    </form>
+    <div class="dlg-pv">
+      <div class="pv-bar"><span class="dot" id="pvDot"></span><b>ตัวอย่างบนหน้าเว็บ</b><span id="pvState">— ยังไม่ได้บันทึก</span></div>
+      <iframe id="pvFrame" title="ตัวอย่างบนหน้าเว็บ" sandbox></iframe>
+    </div>
+  </div>
+</dialog>
+
+<!-- นำเข้าสมุนไพรจากไฟล์ -->
+<dialog id="impDlg">
+  <div class="imp">
+    <h2>นำเข้าสมุนไพรจากไฟล์ Excel / CSV</h2>
+    <ol class="imp-steps">
+      <li>กด <b>"ดาวน์โหลดไฟล์ตัวอย่าง"</b> เพื่อดูหัวคอลัมน์ (มีข้อมูลปัจจุบันอยู่แล้ว เติมต่อได้เลย)</li>
+      <li>กรอกข้อมูลใน Excel หนึ่งแถวต่อหนึ่งชนิด และ<b>ห้ามแก้ชื่อหัวคอลัมน์ในแถวแรก</b>
+        <div class="hint">คอลัมน์: ชื่อภาษาไทย (จำเป็น) · ชื่อภาษาอังกฤษ · ชื่อวิทยาศาสตร์ · ลักษณะทั่วไป · สรรพคุณ · กลุ่มสมุนไพร (หลายกลุ่มคั่นด้วย ,) · จังหวัด (เฉพาะพันธุ์ไม้มงคล)</div></li>
+      <li>บันทึกเป็น <b>.xlsx</b> หรือ <b>CSV UTF-8</b> แล้วเลือกไฟล์ด้านล่าง ระบบจะแสดงตัวอย่างให้ตรวจก่อนบันทึก</li>
+    </ol>
+    <div class="imp-row">
+      <button type="button" class="btn ghost" id="tplBtn">⬇ ดาวน์โหลดไฟล์ตัวอย่าง</button>
+      <label class="btn">เลือกไฟล์…<input type="file" id="impFile" accept=".xlsx,.csv,.txt" hidden></label>
+      <span id="impName" class="hint"></span>
+    </div>
+    <div class="imp-mode">
+      <label><input type="radio" name="mode" value="merge" checked> <b>เพิ่ม/อัปเดต</b> <span class="hint">ชื่อไทยตรงกับที่มีอยู่ → อัปเดต, ชื่อใหม่ → เพิ่ม (ของเดิมที่ไม่อยู่ในไฟล์ยังอยู่ครบ)</span></label>
+      <label><input type="radio" name="mode" value="replace"> <b>แทนที่ทั้งหมด</b> <span class="hint">ใช้ไฟล์เป็นรายชื่อทั้งหมด: ชนิดที่ไม่อยู่ในไฟล์จะย้ายไปถังขยะ (กู้คืนได้ 30 วัน) · ชนิดที่ชื่อตรงกันจะอัปเดตและ<b>คงลิงก์/ป้าย QR เดิม</b></span></label>
+    </div>
+    <div id="impResult"></div>
+    <div class="foot"><button type="button" class="btn ghost" id="impCancel">ปิด</button><button type="button" class="btn" id="impGo" disabled>ยืนยันนำเข้า</button></div>
+  </div>
+</dialog>
+
+<!-- อัปโหลดรูปสมุนไพรหลายรูป -->
+<dialog id="phDlg">
+  <div class="imp">
+    <h2>อัปโหลดรูปสมุนไพรหลายรูปพร้อมกัน</h2>
+    <ol class="imp-steps">
+      <li><b>ตั้งชื่อไฟล์รูปเป็นชื่อภาษาไทยของสมุนไพร</b> เช่น <code>ขิง.jpg</code>, <code>ฟ้าทะลายโจร.png</code>
+        <div class="hint">ใช้ชื่อวิทยาศาสตร์ก็ได้ เช่น <code>Curcuma longa.jpg</code> · ชื่อที่มีวงเล็บไม่ต้องใส่วงเล็บก็ได้ เช่น <code>ราชพฤกษ์.jpg</code> · ตัวเลขท้ายชื่อจะถูกตัดออก เช่น <code>ขิง_1.jpg</code></div></li>
+      <li>เลือกรูปทั้งหมด (กด Ctrl+A ในโฟลเดอร์ได้) ระบบจะจับคู่ให้ดูก่อน แล้วค่อยกดยืนยัน</li>
+    </ol>
+    <div class="imp-row">
+      <label class="btn">เลือกรูป…<input type="file" id="phFiles" accept="image/jpeg,image/png,image/webp" multiple hidden></label>
+      <label style="margin:0;font-weight:400"><input type="checkbox" id="phOverwrite" style="display:inline;width:auto;margin:0 4px 0 0"> แทนที่รูปเดิมของชนิดที่มีรูปอยู่แล้ว</label>
+    </div>
+    <div id="phResult"></div>
+    <div class="foot"><button type="button" class="btn ghost" id="phCancel">ปิด</button><button type="button" class="btn" id="phGo" disabled>ยืนยันอัปโหลด</button></div>
+  </div>
+</dialog>
+
+<!-- พิมพ์ป้าย QR ติดต้นไม้ -->
+<dialog id="qrDlg">
+  <div class="imp">
+    <h2>พิมพ์ป้าย QR ติดต้นไม้</h2>
+    <p class="hint" style="margin-bottom:12px">ผู้เข้าชมสแกนป้ายด้วยกล้องมือถือ → เปิดหน้าของพืชชนิดนั้นบนเว็บ เห็นรูปและข้อมูลทันที · ป้ายใช้ลิงก์ถาวร แก้ข้อมูลพืชภายหลังได้โดยไม่ต้องพิมพ์ป้ายใหม่</p>
+    <label>ที่อยู่เว็บจริง (QR จะชี้ไปที่นี่)<input id="qrSite" placeholder="https://www.example.com"></label>
+    <p class="err" id="qrSiteWarn"></p>
+    <div class="imp-mode">
+      <b>พิมพ์ป้ายของ</b>
+      <label><input type="radio" name="qrScope" value="all" checked> สมุนไพรทั้งหมด <span class="hint" id="qrCntAll"></span></label>
+      <label><input type="radio" name="qrScope" value="search"> เฉพาะที่ค้นหาอยู่ในช่องค้นหาชื่อ <span class="hint" id="qrCntSearch"></span></label>
+      <label><input type="radio" name="qrScope" value="prov"> เฉพาะพันธุ์ไม้มงคลประจำจังหวัด <span class="hint" id="qrCntProv"></span></label>
+    </div>
+    <div class="imp-mode">
+      <b>จำนวนป้ายต่อชนิด</b>
+      <label style="display:flex;gap:10px;align-items:center">
+        <input type="number" id="qrCopies" min="1" max="50" value="1" style="width:90px;display:inline-block;margin:0">
+        <span class="hint">เช่น มีต้นฟ้าทะลายโจร 5 ต้น ใส่ 5 → ได้ 5 ป้ายไปติดทุกต้น (ต้นชนิดเดียวกันใช้ QR เดียวกัน) · ถ้าแต่ละชนิดมีจำนวนต้นไม่เท่ากัน ให้พิมพ์ทีละชนิดโดยค้นหาชื่อก่อน</span>
+      </label>
+      <span class="hint" id="qrTotal"></span>
+    </div>
+    <div class="imp-mode">
+      <b>ขนาดป้าย</b>
+      <label><input type="radio" name="qrSize" value="s" checked> มาตรฐาน 9 × 5.2 ซม. (10 ป้าย/A4) — ปักหรือแขวนที่ต้นไม้</label>
+      <label><input type="radio" name="qrSize" value="l"> ใหญ่ 19 × 13 ซม. (2 ป้าย/A4) — ป้ายตั้งหน้าแปลง/ต้นไม้ใหญ่</label>
+    </div>
+    <p class="hint">แนะนำ: พิมพ์บนกระดาษสติกเกอร์กันน้ำ หรือเคลือบพลาสติกก่อนติดกลางแจ้ง · ลองสแกนป้ายแรกด้วยมือถือก่อนพิมพ์ทั้งหมด</p>
+    <div class="foot"><button type="button" class="btn ghost" id="qrCancel">ปิด</button><button type="button" class="btn" id="qrGo">เปิดหน้าพิมพ์ป้าย</button></div>
+  </div>
+</dialog>
+
+<!-- ป้าย QR ของพืชชนิดเดียว (หลังเพิ่มพืชใหม่ / ปุ่ม 🏷 QR ในรายการ) -->
+<dialog id="qrOneDlg">
+  <div class="imp">
+    <h2 id="q1Title" style="font-size:20px"></h2>
+    <div class="q1">
+      <div class="q1-label">
+        <div class="q1-tx"><b id="q1Name"></b><i id="q1Sci"></i><small>📱 สแกนดูรูปและข้อมูล</small></div>
+        <div id="q1Qr" class="q1-qr"></div>
+      </div>
+      <div class="q1-opt">
+        <label>จำนวนป้าย (จำนวนต้นที่จะติด)<input type="number" id="q1Copies" min="1" max="50" value="1"></label>
+        <div class="imp-mode" style="margin:0">
+          <label><input type="radio" name="q1Size" value="s" checked> มาตรฐาน 9 × 5.2 ซม.</label>
+          <label><input type="radio" name="q1Size" value="l"> ใหญ่ 19 × 13 ซม.</label>
+        </div>
+      </div>
+    </div>
+    <p class="hint" style="word-break:break-all;margin-top:10px">ลิงก์ใน QR: <span id="q1Url"></span></p>
+    <p class="err" id="q1Warn"></p>
+    <div class="foot">
+      <button type="button" class="btn ghost" id="q1Close">ปิด</button>
+      <button type="button" class="btn ghost" id="q1Png">⬇ ดาวน์โหลดรูป QR</button>
+      <button type="button" class="btn" id="q1Print">🖨 พิมพ์ป้าย</button>
+    </div>
+  </div>
+</dialog>
+
+<script src="js/vendor/qrcode.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

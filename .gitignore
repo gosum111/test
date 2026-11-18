@@ -1,0 +1,18 @@
+# ข้อมูลลับ / ข้อมูลจริงของเซิร์ฟเวอร์ (สร้างใหม่อัตโนมัติเมื่อรัน server)
+server/admin.json
+server/notify.json
+server/*.db
+server/*.db-shm
+server/*.db-wal
+server/backups/
+server/logs/
+
+# ไฟล์ที่ผู้ใช้อัปโหลดผ่านหน้าแอดมิน
+images/uploads/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# ตั้งค่าส่วนตัวของ Claude Code
+.claude/settings.local.json

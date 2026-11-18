@@ -1,0 +1,17 @@
+# Caddy: รับคนเข้าเว็บทาง HTTPS (ขอใบรับรองให้อัตโนมัติ) แล้วส่งต่อให้ server.py ในเครื่อง
+# 1) เปลี่ยน www.example.com เป็นโดเมนจริงของคุณ (ต้องชี้ DNS มาที่ IP ของเครื่องนี้ก่อน)
+# 2) คัดลอกไฟล์นี้ไปไว้ที่ /etc/caddy/Caddyfile แล้วสั่ง: sudo systemctl reload caddy
+
+www.example.com, example.com {
+	encode gzip
+
+	# จำกัดขนาดการอัปโหลด (รูป/PDF/ไฟล์ Excel) ให้ตรงกับที่เซิร์ฟเวอร์รับ
+	request_body {
+		max_size 10MB
+	}
+
+	reverse_proxy 127.0.0.1:8000
+
+	# บังคับใช้ HTTPS ต่อเนื่องในเบราว์เซอร์
+	header Strict-Transport-Security "max-age=31536000"
+}

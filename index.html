@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สวนสมุนไพรสมเด็จพระเทพฯ</title>
+<meta name="description" content="มิติการเรียนรู้ด้านสมุนไพรไทย แหล่งรวบรวมพันธุ์สมุนไพรมากกว่า 509 ชนิด บนเนื้อที่ 60 ไร่">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="demo">
+<!-- แถบแจ้งเว็บไซต์ทดลอง: ซ่อนอัตโนมัติเมื่อเซิร์ฟเวอร์ตั้ง DEMO_MODE=0 -->
+<div class="demo-bar" id="demoBar" role="note">⚠ <b>เว็บไซต์ทดลอง</b> (ต้นแบบเพื่อการศึกษา) — ไม่ใช่เว็บไซต์ทางการของสวนสมุนไพรฯ หรือ บริษัท ปตท. จำกัด (มหาชน) · ข้อมูลบางส่วนเป็นข้อมูลตัวอย่าง</div>
+<div class="topbar"></div>
+
+<!-- ================= HEADER ================= -->
+<header id="hdr">
+  <div class="hdr">
+    <!-- ซ่อนโลโก้ไว้ก่อน — แสดงอีกครั้ง: ลบคำว่า hidden ในบรรทัดถัดไป -->
+    <a href="#/" aria-label="หน้าหลัก" class="logo-link" hidden>
+      <!-- โลโก้ตัวอย่าง: ให้เปลี่ยนเป็น images/logo.png ของจริง -->
+      <svg class="logo" viewBox="0 0 82 104" fill="none">
+        <path d="M24 4c-6 8-9 13-9 18a9 9 0 0 0 18 0c0-5-3-10-9-18z" fill="#c9a24a"/>
+        <path d="M24 13c-3 4-4 7-4 9a4 4 0 0 0 8 0c0-2-1-5-4-9z" fill="#fff"/>
+        <path d="M40 30c-4 18-2 40 6 70" stroke="#8a3d9c" stroke-width="3" stroke-linecap="round"/>
+        <path d="M44 62C30 50 12 52 4 64c14 10 30 10 40-2z" fill="#8a3d9c"/>
+        <path d="M44 62C38 72 26 78 14 76" stroke="#fff" stroke-width="1.5"/>
+        <path d="M43 44c10-14 26-16 36-8-8 12-24 16-36 8z" fill="#c9a24a"/>
+        <path d="M47 76c8-6 18-6 24 0-6 8-16 8-24 0z" fill="#c9a24a"/>
+        <path d="M41 36c6-10 4-20-2-26-4 8-4 18 2 26z" fill="#a15bb5"/>
+      </svg>
+    </a>
+    <ul class="menu" id="menu">
+      <li data-p="/"><a href="#/">หน้าหลัก</a></li>
+      <li class="has" data-p="/about"><a href="#" data-dd>เกี่ยวกับเรา</a>
+        <div class="dd"><a href="#/about/history">ประวัติความเป็นมา</a><a href="#/about/building">อาคารเฉลิมพระเกียรติ 50 พรรษา</a><a href="#/about/awards">รางวัลที่ได้รับ</a></div></li>
+      <li class="has" data-p="/herb"><a href="#" data-dd>สวนสมุนไพร</a>
+        <div class="dd"><a href="#/herb/search">ค้นหาสมุนไพร</a><a href="#/herb/articles">บทความสมุนไพร</a><a href="#/herb/map">แผนผังสวนสมุนไพร</a></div></li>
+      <li class="has" data-p="/news"><a href="#" data-dd>ข่าวประชาสัมพันธ์</a>
+        <div class="dd"><a href="#/news">ข่าวประชาสัมพันธ์</a></div></li>
+      <li data-p="/brochure"><a href="#/brochure">โบรชัวร์</a></li>
+      <li data-p="/activities"><a href="#/activities">โครงการและกิจกรรม</a></li>
+      <li data-p="/calendar"><a href="#/calendar">ปฏิทินกิจกรรม</a></li>
+      <li data-p="/contact"><a href="#/contact">ติดต่อเรา</a></li>
+    </ul>
+    <button class="burger" id="burger" aria-label="เมนู">☰</button>
+  </div>
+</header>
+
+<main>
+<!-- ================= HOME ================= -->
+<div class="page" data-page="/">
+  <div class="hero">
+    <div class="clouds"></div>
+    <!-- ต้นไม้วาดด้วย SVG เป็นภาพสำรอง ถ้ามี images/hero.jpg จะแสดงภาพจริงทับ -->
+    <svg class="trees" aria-hidden="true"></svg><!-- วาดโดย js/hero.js -->
+    <div class="photo"></div>
+    <!-- ซ่อนชื่อสวนและคำบรรยายไว้ก่อน — แสดงอีกครั้ง: ลบคำว่า hidden ในบรรทัดถัดไป -->
+    <div class="hero-text" hidden>
+      <span class="pill marquee"><span>สวนสมุนไพรสมเด็จพระเทพรัตนราชสุดาฯ สยามบรมราชกุมารี</span></span>
+      <h1>สวนสมุนไพรสมเด็จพระเทพรัตนราชสุดาฯ<br>สยามบรมราชกุมารี</h1>
+      <p>มิติการเรียนรู้ด้านสมุนไพรไทย ศาสตร์แห่งภูมิปัญญาที่มีคุณค่าเอนกอนันต์<br>แหล่งรวบรวมพันธุ์สมุนไพรมากกว่า 509 ชนิด บนเนื้อที่ 60 ไร่</p>
+    </div>
+    <div id="leaves"></div>
+  </div>
+
+  <!-- เลื่อนลงจากหัวเว็บ → ข่าวสารล่าสุด -->
+  <section class="news-sec">
+    <div class="container">
+      <div class="news-head"><h2>ข่าวสารล่าสุด</h2><a class="btn btn-pink" href="#/news">ดูทั้งหมด</a></div>
+      <div class="news-grid" id="homeNews"></div>
+    </div>
+  </section>
+
+  <!-- บริการ -->
+  <section class="svc-sec">
+    <div class="svc-wrap">
+      <div class="svc-text">
+        <h2>บริการ</h2>
+        <p>สวนสมุนไพรสมเด็จพระเทพรัตนราชสุดาฯ สยามบรมราชกุมารี มีกิจกรรมต่าง ๆ มากมาย ให้นักท่องเที่ยว นักเรียน นักศึกษา หรือบุคคลทั่วไป ที่สนใจในสมุนไพรไทยเข้ามาศึกษาหาความรู้ท่ามกลางบรรยากาศร่มรื่นเต็มไปด้วยสมุนไพรหลากหลายชนิดโดยแบ่งเป็น 20 กลุ่มตามสรรพคุณรักษาโรค</p>
+        <div class="svc-arrows">
+          <button id="svcPrev" aria-label="ก่อนหน้า"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+          <button id="svcNext" aria-label="ถัดไป"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+      <div class="svc-track" id="svcTrack"></div>
+    </div>
+  </section>
+
+  <section class="block ha-sec">
+    <div class="container">
+      <div class="sec-title"><h2>โครงการและกิจกรรม</h2><p class="ha-desc">นอกจากเป็นแหล่งเรียนรู้สมุนไพรแล้ว สวนสมุนไพรสมเด็จพระเทพรัตนราชสุดาฯ สยามบรมราชกุมารี<br>ยังมีโครงการและกิจกรรมในด้านอื่น ๆ ที่น่าสนใจ อาทิ Wellness ,Sport Complex, ตลาดนัดชุมชน , งาน อพ.สธ. และ กิจกรรม Workshop</p></div>
+      <div class="ha-tabs" id="haTabs" role="tablist"></div>
+      <div class="ha-list" id="haList"></div>
+      <div class="center"><a class="btn btn-pink" href="#/activities">ดูทั้งหมด</a></div>
+    </div>
+  </section>
+
+  <section class="cal-sec">
+    <div class="container">
+      <h2>ปฏิทินกิจกรรม</h2>
+      <div id="homeCal"></div>
+    </div>
+  </section>
+
+  <!-- สาธิตผลิตภัณฑ์จากสมุนไพร (Workshop) -->
+  <section class="ws-sec">
+    <h2 class="ws-title">สาธิตผลิตภัณฑ์จากสมุนไพร (Workshop)</h2>
+    <div class="ws-wrap">
+      <button class="ws-arrow prev" id="wsPrev" aria-label="ก่อนหน้า"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+      <div class="ws-track" id="wsTrack"></div>
+      <button class="ws-arrow next" id="wsNext" aria-label="ถัดไป"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </div>
+    <div class="ws-progress"><span id="wsBar"></span></div>
+  </section>
+
+  <!-- พันธุ์ไม้มงคลพระราชทานประจำจังหวัด (77 จังหวัด) -->
+  <section class="pv-sec">
+    <div class="container">
+      <h2 class="pv-head">พันธุ์ไม้มงคลพระราชทานประจำจังหวัด (77 จังหวัด)</h2>
+      <div class="ha-tabs pv-tabs" id="pvTabs" role="tablist"></div>
+      <div class="pv-grid">
+        <div class="pv-map" id="pvMap"></div>
+        <div class="pv-side">
+          <h3 id="pvTitle"></h3>
+          <p id="pvSub"></p>
+          <div class="pv-list" id="pvList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ================= SUB PAGES (shared template) ================= -->
+<div class="page" data-page="sub">
+  <div class="sub-hero" id="subHero"></div>
+  <div class="container">
+    <div class="crumb" id="crumb"></div>
+    <div class="page-head"><div><h1 id="subTitle"></h1><p id="subDesc"></p></div><div class="filters" id="subFilters"></div></div>
+    <div id="subBody"></div>
+  </div>
+</div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="foot">
+      <div>
+        <h4>สวนสมุนไพรสมเด็จพระเทพรัตนราชสุดาฯ สยามบรมราชกุมารี</h4>
+        <p>39 ทางหลวงระยอง 3191 อ.นิคมพัฒนา จ.ระยอง 21180<br>โทร 03-867-6168, 084-930-6060<br>pr_herbgarden@pttplc.com</p>
+        <div class="social">
+          <a href="https://www.facebook.com/ptt.herbgarden" target="_blank" rel="noopener" aria-label="Facebook">f</a>
+          <a href="https://www.youtube.com/@pttherbgardenchannel8378" target="_blank" rel="noopener" aria-label="YouTube">▶</a>
+          <a href="mailto:pr_herbgarden@pttplc.com" aria-label="Email">@</a>
+        </div>
+      </div>
+      <div><h4>สวนสมุนไพร</h4><ul><li><a href="#/herb/search">ค้นหาสมุนไพร</a></li><li><a href="#/herb/articles">บทความสมุนไพร</a></li><li><a href="#/herb/map">แผนผังสวนสมุนไพร</a></li><li><a href="#/brochure">โบรชัวร์</a></li></ul></div>
+      <div><h4>เกี่ยวกับเรา</h4><ul><li><a href="#/about/history">ประวัติความเป็นมา</a></li><li><a href="#/news">ข่าวประชาสัมพันธ์</a></li><li><a href="#/calendar">ปฏิทินกิจกรรม</a></li><li><a href="#/contact">ติดต่อเรา</a></li></ul></div>
+    </div>
+    <div class="copy"><span>© <span id="yr"></span> บริษัท ปตท. จำกัด (มหาชน) สงวนลิขสิทธิ์</span><a href="#/cookie">นโยบายคุกกี้</a></div>
+  </div>
+</footer>
+
+<div class="cookie" id="cookie" hidden>
+  <div class="in">
+    <p>เว็บไซต์นี้ใช้คุกกี้เพื่อมอบประสบการณ์การใช้งานเว็บไซต์และการปรับปรุงประสบการณ์การใช้งานของท่านให้ดียิ่งขึ้น ท่านสามารถศึกษาเกี่ยวกับ <a href="#/cookie">นโยบายข้อมูลส่วนบุคคลของเราและการใช้คุกกี้</a> การใช้งานเว็บไซต์นี้เป็นการยอมรับข้อกำหนดและยินยอมให้เราจัดเก็บคุกกี้ตามนโยบายที่แจ้งในเบื้องต้น</p>
+    <div class="btns"><button class="no" data-c="no">ไม่ตกลง</button><button class="yes" data-c="yes">ตกลง</button></div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/herb-search.js"></script>
+<script src="js/garden-map.js"></script>
+<script src="js/activities.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/home.js"></script>
+<script src="js/main.js"></script>
+<script src="js/api.js"></script>
+</body>
+</html>

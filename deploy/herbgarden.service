@@ -1,0 +1,28 @@
+# systemd: ให้เว็บรันตลอดเวลา และเปิดเองอัตโนมัติเมื่อเครื่องรีสตาร์ต
+# คัดลอกไปไว้ที่ /etc/systemd/system/herbgarden.service แล้วสั่ง:
+#   sudo systemctl daemon-reload && sudo systemctl enable --now herbgarden
+# ดูสถานะ/log:  sudo systemctl status herbgarden   |   sudo journalctl -u herbgarden -f
+
+[Unit]
+Description=Herb garden website (server.py)
+After=network.target
+
+[Service]
+Type=simple
+User=herbgarden
+WorkingDirectory=/opt/herbgarden
+Environment=PYTHONIOENCODING=utf-8
+Environment=PYTHONUNBUFFERED=1
+# รับเฉพาะจากในเครื่อง (Caddy เป็นตัวรับจากอินเทอร์เน็ต) และเชื่อ IP ที่ Caddy ส่งมา
+Environment=HOST=127.0.0.1
+Environment=PORT=8000
+Environment=TRUST_PROXY=1
+# เว็บจริง: ปิดโหมดเว็บไซต์ทดลอง (ซ่อนแถบ "เว็บไซต์ทดลอง" และให้ Google เก็บเว็บได้)
+# ถ้ายังเป็นเว็บทดลอง ให้ลบบรรทัดนี้ออก
+Environment=DEMO_MODE=0
+ExecStart=/usr/bin/python3 server/server.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
