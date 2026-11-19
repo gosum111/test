@@ -15,4 +15,4 @@ __pycache__/
 *.pyc
 
 # ตั้งค่าส่วนตัวของ Claude Code
-.claude/settings.local.json
+.claude/

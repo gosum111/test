@@ -76,7 +76,8 @@ const FORMS = {
     ["file","ไฟล์ PDF","pdf"]]}
 };
 
-/* อ่านไฟล์เป็น data URL — รูปภาพจะถูกย่อให้ด้านยาวไม่เกิน 1600px (ไฟล์เล็กลง โหลดเว็บเร็วขึ้น) */
+/* อ่านไฟล์เป็น data URL — รูปภาพจะถูกย่อให้ด้านยาวไม่เกิน 1600px และบีบอัดเป็น JPG (ไฟล์เล็กลง โหลดเว็บเร็วขึ้น)
+   ถ้าบีบแล้วใหญ่กว่าไฟล์เดิม (เช่น JPG ที่บีบมาดีแล้ว) จะใช้ไฟล์เดิม */
 const readDataUrl = f => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = no; r.readAsDataURL(f); });
 async function fileToUpload(file, max = 1600){
   if(!/^image\/(jpeg|png|webp)$/.test(file.type)){
@@ -85,13 +86,15 @@ async function fileToUpload(file, max = 1600){
   }
   const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => no(new Error("เปิดรูปไม่ได้")); i.src = URL.createObjectURL(file); });
   const s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
-  if(s === 1 && file.size < 1.5 * 1024 * 1024){ URL.revokeObjectURL(img.src); return readDataUrl(file); }
+  if(s === 1 && file.size < 200 * 1024){ URL.revokeObjectURL(img.src); return readDataUrl(file); }   /* เล็กอยู่แล้ว ไม่ต้องบีบ */
   const c = Object.assign(document.createElement("canvas"), {width:Math.round(img.naturalWidth * s), height:Math.round(img.naturalHeight * s)});
   const ctx = c.getContext("2d");
   ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);   /* พื้นหลังโปร่งใสของ PNG → ขาว */
   ctx.drawImage(img, 0, 0, c.width, c.height);
   URL.revokeObjectURL(img.src);
-  return c.toDataURL("image/jpeg", .85);
+  const jpg = c.toDataURL("image/jpeg", .82);
+  if(s === 1 && file.size <= 5 * 1024 * 1024 && jpg.length * .75 >= file.size) return readDataUrl(file);
+  return jpg;
 }
 
 async function api(path, opts = {}){

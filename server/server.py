@@ -717,7 +717,7 @@ def test_notify(channel: str) -> dict:
 SITE_NAME = "สวนสมุนไพรสมเด็จพระเทพฯ"
 SITE_FULL = "สวนสมุนไพรสมเด็จพระเทพรัตนราชสุดาฯ สยามบรมราชกุมารี"
 SITE_DESC = "มิติการเรียนรู้ด้านสมุนไพรไทย แหล่งรวบรวมพันธุ์สมุนไพรมากกว่า 509 ชนิด บนเนื้อที่ 60 ไร่"
-DEFAULT_IMG = "images/hero.jpg"
+DEFAULT_IMG = "images/og-default.jpg"   # การ์ดสำหรับแชร์ลิงก์ (1200x630) — ใช้เมื่อหน้านั้นไม่มีรูป
 STATIC_PAGES = {   # path → (ชื่อหน้า, คำอธิบาย)
     "/herb/search": ("ค้นหาสมุนไพร", "ค้นหาข้อมูลสมุนไพรในสวน ตามชื่อ สรรพคุณ กลุ่มสมุนไพร และพันธุ์ไม้มงคลประจำจังหวัด"),
     "/herb/articles": ("บทความสมุนไพร", "บทความความรู้เรื่องสมุนไพรไทย"),
@@ -1238,8 +1238,13 @@ class Handler(SimpleHTTPRequestHandler):
             desc, img = meta["desc"], meta["img"]
         else:
             title, desc, img = f"ไม่พบหน้านี้ | {SITE_NAME}", SITE_DESC, DEFAULT_IMG
+        # รูปที่ตั้งไว้แต่ไม่มีไฟล์อยู่จริง → ใช้การ์ดแชร์แทน (ไม่ให้ LINE/Facebook ขึ้นรูปเสีย)
+        if not img.startswith(("http://", "https://")) and not (ROOT / img.lstrip("/")).is_file():
+            img = DEFAULT_IMG
         img_url = img if img.startswith(("http://", "https://")) else f"{base}/{quote(img.lstrip('/'))}"
         e = lambda s: html_escape(str(s), quote=True)
+        og_size = ('<meta property="og:image:width" content="1200">\n'
+                   '<meta property="og:image:height" content="630">\n') if img == DEFAULT_IMG else ''
         head = (f'<base href="/">\n<link rel="canonical" href="{e(base + quote(path))}">\n'
                 f'<meta property="og:type" content="{"website" if meta and meta.get("home") else "article"}">\n'
                 f'<meta property="og:site_name" content="{e(SITE_FULL)}">\n'
@@ -1247,6 +1252,9 @@ class Handler(SimpleHTTPRequestHandler):
                 f'<meta property="og:description" content="{e(desc)}">\n'
                 f'<meta property="og:url" content="{e(base + quote(path))}">\n'
                 f'<meta property="og:image" content="{e(img_url)}">\n'
+                + og_size +
+                f'<meta property="og:image:alt" content="{e(meta["title"] if meta else SITE_NAME)}">\n'
+                f'<meta property="og:locale" content="th_TH">\n'
                 f'<meta name="twitter:card" content="summary_large_image">\n'
                 + ('<meta name="robots" content="noindex, nofollow">\n' if DEMO_MODE or not meta else ''))
         html = re.sub(r"<title>.*?</title>", lambda _: f"<title>{e(title)}</title>", html, count=1, flags=re.S)
