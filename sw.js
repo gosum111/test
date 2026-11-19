@@ -4,14 +4,14 @@
    - รูปภาพ, ฟอนต์: ใช้ชุดในเครื่องทันที (เร็ว) แล้วอัปเดตเบื้องหลัง
    - ไม่ยุ่งกับหน้าแอดมิน, การส่งฟอร์ม และ API อื่น ๆ (ต้องใช้เน็ตจริงเสมอ)
    แก้ไฟล์นี้แล้ว: เปลี่ยน VERSION เพื่อล้างแคชเก่า */
-const VERSION = "v1";
+const VERSION = "v2";
 const SHELL = `shell-${VERSION}`, IMAGES = `images-${VERSION}`;
 const MAX_IMAGES = 250;           // เก็บรูปในเครื่องไม่เกินจำนวนนี้ (ลบรูปเก่าสุดออก)
 const NET_TIMEOUT = 4000;
 
 const PRECACHE = [
   "/", "/css/style.css", "/manifest.webmanifest",
-  "/js/data.js", "/js/herb-search.js", "/js/garden-map.js", "/js/activities.js",
+  "/js/i18n.js", "/js/data.js", "/js/herb-search.js", "/js/garden-map.js", "/js/activities.js",
   "/js/hero.js", "/js/home.js", "/js/main.js", "/js/api.js",
   "/images/favicon.svg", "/images/icons/icon-192.png", "/api/public",
 ];

@@ -48,8 +48,9 @@ let pvRegion = "ภาคกลาง";
 function provincesRun(){
   const tabs = document.getElementById("pvTabs"); if (!tabs) return;
   const regions = Object.keys(PROVINCES);
-  tabs.innerHTML = regions.map(r=>`<button class="${r===pvRegion?"on":""}" role="tab">${r}</button>`).join("");
-  tabs.querySelectorAll("button").forEach(b=>b.onclick=()=>{ pvRegion=b.textContent; provincesRun(); });
+  /* data-v = ชื่อภาคภาษาไทยเดิม (ข้อความบนปุ่มอาจถูกแปลเป็นภาษาอังกฤษ) */
+  tabs.innerHTML = regions.map(r=>`<button class="${r===pvRegion?"on":""}" role="tab" data-v="${r}">${r}</button>`).join("");
+  tabs.querySelectorAll("button").forEach(b=>b.onclick=()=>{ pvRegion=b.dataset.v; provincesRun(); });
 
   const map = document.getElementById("pvMap");
   if (!map.querySelector(".pv-dots")) map.innerHTML = thaiDotsSvg() + `<div id="pvPins"></div>`;

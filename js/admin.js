@@ -295,7 +295,7 @@ const PREVIEWS = {
     const fm = (d.detail || "").match(/^วงศ์\s+([^·]+?)\s*·\s*/), family = fm ? fm[1] : "", desc = fm ? d.detail.slice(fm[0].length) : (d.detail || "");
     const groups = (d.groups || "").split(",").map(s => s.trim()).filter(Boolean);
     const row = (k, v) => v ? `<div><dt>${k}</dt><dd>${v}</dd></div>` : "";
-    const qr = editing ? qrSvg(`${SITE_URL}/herb/plant/${editing.id}`)
+    const qr = editing ? qrSvg(qrUrl(SITE_URL, editing.id), d.th)
       : `<div style="aspect-ratio:1;display:grid;place-items:center;text-align:center;border:2px dashed #c9c2d6;border-radius:6px;font:12px 'IBM Plex Sans Thai';color:#888;padding:6px">QR สร้างอัตโนมัติ<br>เมื่อกดบันทึก</div>`;
     return `<section style="padding:24px 28px 8px">
       ${PV_LABEL("ป้าย QR ที่จะติดต้นไม้")}
@@ -583,7 +583,55 @@ $("#impGo").onclick = async () => {
 };
 
 /* ---------- สมุนไพร: พิมพ์ป้าย QR ติดต้นไม้ ---------- */
-const qrSvg = text => { const q = qrcode(0, "Q"); q.addData(text); q.make(); return q.createSvgTag({cellSize:4, margin:0, scalable:true}); };
+/* QR เป็น SVG — ใส่ name แล้วจะมีกล่องชื่อพืชตรงกลาง QR
+   ใช้ระดับแก้ข้อผิดพลาด "H" (กู้ข้อมูลได้ถึง ~30%) จึงยังสแกนได้แม้มีกล่องบังตรงกลาง (บังไม่เกิน ~20% ของพื้นที่)
+   ขนาดตัวอักษร: วัดความกว้างจริงของชื่อ แล้วใช้ตัวใหญ่ที่สุดที่ใส่กล่องได้ · ชื่อยาวแบ่ง 2 บรรทัดตรงรอยต่อคำ */
+const QR_FONT = "'IBM Plex Sans Thai',Tahoma,'Leelawadee UI',sans-serif";
+const qrMeasure = (() => {   /* ความกว้างของข้อความ (หน่วย = เท่าของขนาดตัวอักษร) */
+  const c = document.createElement("canvas").getContext("2d");
+  return s => { c.font = `700 100px ${QR_FONT}`; return c.measureText(s).width / 100; };
+})();
+function qrLines(label){
+  /* หาจุดแบ่ง 2 บรรทัดที่ทำให้บรรทัดยาวสุดสั้นที่สุด (แบ่งตรงรอยต่อคำภาษาไทยเท่านั้น) */
+  if(!window.Intl || !Intl.Segmenter) return [[label], qrMeasure(label)];
+  const words = [...new Intl.Segmenter("th", {granularity:"word"}).segment(label)].map(s => s.segment);
+  let best = [label], bestW = qrMeasure(label);
+  for(let i = 1; i < words.length; i++){
+    const a = words.slice(0, i).join("").trim(), b = words.slice(i).join("").trim();
+    if(!a || !b) continue;
+    const w = Math.max(qrMeasure(a), qrMeasure(b));
+    if(w < bestW){ best = [a, b]; bestW = w; }
+  }
+  return [best, bestW];
+}
+/* ลิงก์ที่ใส่ใน QR ป้ายต้นไม้: แบบสั้นตัวพิมพ์ใหญ่ "HTTPS://เว็บ/P/514" (เซิร์ฟเวอร์พาไปหน้า /herb/plant/514)
+   QR เก็บตัวพิมพ์ใหญ่แบบ "Alphanumeric" ได้กระชับกว่า ~45% → ช่องใหญ่ขึ้น สแกนง่ายขึ้นแม้มีชื่อพืชบังตรงกลาง
+   ถ้าที่อยู่เว็บมี path ต่อท้าย (ตัวพิมพ์ใหญ่อาจเปิดไม่ได้) → ใช้ลิงก์เต็มแบบเดิม */
+const qrUrl = (site, id) => /^https?:\/\/[A-Za-z0-9.-]+(:\d+)?$/.test(site) ? `${site}/P/${id}`.toUpperCase() : `${site}/herb/plant/${id}`;
+function qrSvg(text, name){
+  const q = qrcode(0, name ? "H" : "Q");
+  q.addData(text, /^[0-9A-Z $%*+\-./:]+$/.test(text) ? "Alphanumeric" : "Byte"); q.make();
+  const n = q.getModuleCount();
+  let d = "";
+  for(let r = 0; r < n; r++) for(let c = 0; c < n; c++) if(q.isDark(r, c)) d += `M${c} ${r}h1v1h-1z`;
+  let mid = "";
+  const label = String(name || "").trim();
+  if(label){
+    /* ขนาดกล่องสูงสุดทดสอบแล้วว่าสแกนได้ (ใหญ่กว่านี้บางชื่อสแกนไม่ติด) */
+    const maxW = n * 0.56 - 1.6, LH = 1.12;              /* ความกว้างข้อความสูงสุด (หน่วย = ช่อง QR) · ระยะบรรทัด */
+    const h1 = n * 0.19, h2 = n * 0.235;                  /* ความสูงกล่อง 1 บรรทัด / 2 บรรทัด */
+    const w1 = qrMeasure(label), fs1 = Math.min((h1 - 1.2) / LH, maxW / w1);
+    const [two, w2] = qrLines(label), fs2 = two.length > 1 ? Math.min((h2 - 1.2) / (2 * LH), maxW / w2) : 0;
+    const useTwo = fs2 > fs1 * 1.2;                       /* แบ่ง 2 บรรทัดเมื่อได้ตัวใหญ่ขึ้นชัดเจน */
+    const lines = useTwo ? two : [label], fs = useTwo ? fs2 : fs1, tw = useTwo ? w2 : w1;
+    const bw = Math.max(n * 0.28, fs * tw + 1.6), bh = lines.length * fs * LH + 1.2;
+    const x = (n - bw) / 2, y = (n - bh) / 2;
+    mid = `<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${bw.toFixed(2)}" height="${bh.toFixed(2)}" rx="1.2" fill="#fff"/>`
+      + lines.map((l, i) => `<text x="${n / 2}" y="${(n / 2 + (i - (lines.length - 1) / 2) * fs * LH).toFixed(2)}" dominant-baseline="central" text-anchor="middle"
+          font-family="${QR_FONT}" font-weight="700" font-size="${fs.toFixed(2)}" fill="#000" textLength="${(fs * qrMeasure(l)).toFixed(2)}" lengthAdjust="spacingAndGlyphs">${esc(l)}</text>`).join("");
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${n} ${n}"><path d="${d}" fill="#000" shape-rendering="crispEdges"/>${mid}</svg>`;
+}
 const qrScope = () => document.querySelector('#qrDlg input[name="qrScope"]:checked').value;
 function qrList(){
   const q = $("#q").value.trim().toLowerCase();
@@ -641,7 +689,7 @@ function openLabelSheet(list, copies, big, site, win){
         <div class="sc">📱 สแกนดูรูปและข้อมูล</div>
         <div class="id">#${h.id}</div>
       </div>
-      <div class="qr">${qrSvg(`${site}/herb/plant/${h.id}`)}</div>
+      <div class="qr">${qrSvg(qrUrl(site, h.id), h.th)}</div>
     </div>`).join("");
   const w = win || window.open("", "_blank");
   if(!w){ alert("เบราว์เซอร์บล็อกหน้าต่างใหม่ — กรุณาอนุญาตป๊อปอัปสำหรับหน้านี้"); return false; }
@@ -683,7 +731,7 @@ async function openQrOne(h, isNew){
   site = site.replace(/\/+$/, "");
   const url = `${site}/herb/plant/${h.id}`;
   $("#q1Title").textContent = isNew ? `✓ เพิ่ม "${h.th}" แล้ว — พิมพ์ป้าย QR ได้เลย` : `ป้าย QR: ${h.th}`;
-  $("#q1Qr").innerHTML = qrSvg(url);
+  $("#q1Qr").innerHTML = qrSvg(qrUrl(site, h.id), h.th);
   $("#q1Name").textContent = h.th;
   $("#q1Sci").textContent = h.sci || "";
   $("#q1Url").textContent = url;

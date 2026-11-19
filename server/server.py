@@ -1310,6 +1310,14 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_text('<?xml version="1.0" encoding="UTF-8"?>'
                                   f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>',
                                   "application/xml")
+        # ลิงก์สั้นจาก QR ป้ายต้นไม้ (เช่น /P/514) → หน้าพืช /herb/plant/514
+        mq = re.fullmatch(r"/[pP]/(\d+)/?", path)
+        if mq:
+            self.send_response(301)
+            self.send_header("Location", f"/herb/plant/{mq.group(1)}")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
         # หน้าเว็บ (ลิงก์ที่ไม่ใช่ไฟล์ เช่น /news/3) → ส่ง index.html พร้อมชื่อหน้า/รูปสำหรับแชร์
         first = path.strip("/").split("/")[0]
         if path in ("/", "/index.html") or (not Path(path).suffix and first not in BLOCKED_DIRS
@@ -1709,7 +1717,8 @@ class Handler(SimpleHTTPRequestHandler):
         with GUARD_LOCK:
             for limit, window in CONTACT_LIMITS:
                 if len(recent(CONTACT_LOG, f"{ip}:{window}", window)) >= limit:
-                    raise ApiError(429, "ส่งข้อความบ่อยเกินไป กรุณาลองใหม่ภายหลัง หรือโทร 03-867-6168")
+                    phone = get_settings()["site_phones"].split(",")[0].strip()   # เบอร์จากแท็บ ⚙️ ตั้งค่าเว็บไซต์
+                    raise ApiError(429, "ส่งข้อความบ่อยเกินไป กรุณาลองใหม่ภายหลัง" + (f" หรือโทร {phone}" if phone else ""))
             for _, window in CONTACT_LIMITS:
                 CONTACT_LOG[f"{ip}:{window}"].append(time.time())
         with db() as con:

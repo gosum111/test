@@ -134,11 +134,14 @@ document.addEventListener("click",e=>{
   navigate(href);
 });
 addEventListener("popstate",go);
-const DEFAULT_TITLE=document.title;
+const DEFAULT_TITLE=t(document.title);
 
 /* ---------------- ROUTER ---------------- */
 function go(){
   let p=curPath();
+  /* ลิงก์สั้นจาก QR ป้ายต้นไม้ /P/514 (ปกติเซิร์ฟเวอร์พาไปให้ · ตอนออฟไลน์ทำที่นี่แทน) */
+  const qm=p.match(/^\/p\/(\d+)$/i);
+  if(qm){p="/herb/plant/"+qm[1];if(PATH_MODE)history.replaceState(null,"",p);}
   /* ปฏิทินกิจกรรมอยู่บนหน้าหลัก: เปลี่ยนที่อยู่กลับเป็นหน้าหลัก แล้วค่อยเลื่อนลงไป */
   const scrollCal=p==="/calendar";
   if(scrollCal){p="/";history.replaceState(null,"",PATH_MODE?"/":"#/");}
@@ -157,7 +160,7 @@ function go(){
     body:()=>`<article class="prose">${n[1]?`<p class="art-date">${n[1]}</p>`:""}${n[2]?richText(n[2]):""}<p style="margin-top:40px"><a class="btn btn-g" href="#/news">← กลับไปหน้าข่าวประชาสัมพันธ์</a></p></article>`};}
   const hm=p.match(/^\/herb\/plant\/(\d+)$/), h=hm&&byId(HERB_DB,hm[1]);
   /* หน้าพืช (ปลายทางของป้าย QR ที่ต้นไม้): ไม่มีภาพหัวหน้า → สแกนแล้วเห็นรูปและข้อมูลทันที */
-  if(h){ROUTES[p]={t:h.th,c:"ค้นหาสมุนไพร",noHero:true,body:()=>herbPage(h)};}
+  if(h){ROUTES[p]={t:herbTitle(h),c:"ค้นหาสมุนไพร",noHero:true,body:()=>herbPage(h)};}
   else if(hm){ROUTES[p]=PATH_MODE&&!window.DATA_LOADED
     ? {t:"กำลังโหลดข้อมูลพืช…",c:"ค้นหาสมุนไพร",noHero:true,body:()=>`<p class="empty">กำลังโหลด…</p>`}
     : {t:"ไม่พบข้อมูลพืชนี้",c:"ค้นหาสมุนไพร",noHero:true,body:()=>`<div class="prose"><p>ขออภัย ไม่พบข้อมูลพืชตามลิงก์หรือป้าย QR นี้ ข้อมูลอาจถูกย้ายหรือปรับปรุงแล้ว</p>
@@ -174,7 +177,7 @@ function go(){
   if(p==="/"||!ROUTES[p]){$('[data-page="/"]').classList.add("on");homeRun();document.title=DEFAULT_TITLE;}
   else{
     const r=ROUTES[p];
-    document.title=`${r.t} | สวนสมุนไพรสมเด็จพระเทพฯ`;
+    document.title=t(`${r.t} | สวนสมุนไพรสมเด็จพระเทพฯ`);
     $('[data-page="sub"]').classList.add("on");
     $("#subHero").style.background=(r.img?`url("${r.img}") center/cover no-repeat, `:"")+(r.bg||"");
     $("#subHero").hidden=!!r.noHero;
@@ -279,6 +282,7 @@ function herbPage(h){
         ${row("สถานะการอนุรักษ์",h.status?statusBadge(h.status):"")}
       </dl>
     </div>
+    ${IS_EN?`<p class="note" style="margin-top:24px">Detailed descriptions are currently available in Thai only.</p>`:""}
     <section class="plant-sec"><h2>ลักษณะทั่วไป</h2><p>${desc||"-"}</p></section>
     <section class="plant-sec"><h2>สรรพคุณและการใช้ประโยชน์</h2><p>${h.use||"-"}</p>
       <p class="hs-warn">* ข้อมูลตามภูมิปัญญาการแพทย์แผนไทย ไม่ใช่คำแนะนำทางการแพทย์ ควรปรึกษาแพทย์หรือเภสัชกรก่อนใช้</p></section>

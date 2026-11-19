@@ -48,7 +48,7 @@ const ACTIVITIES_PAGE = {
     return `
       <label>หมวดหมู่กิจกรรม <span class="field" style="min-width:286px"><input id="actQ" placeholder="ระบุคำค้นหา"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></span></label>
       <label>ประเภทกิจกรรม ${actSel("actType", [["","ทั้งหมด"], ...types.map(t=>[t,t])], 296)}</label>
-      <label>วันที่จัดกิจกรรม ${actSel("actMonth", [["","ทุกเดือน"], ...TH_MONTHS.map((m,i)=>[String(i+1).padStart(2,"0"), m])], 138)}</label>
+      <label>วันที่จัดกิจกรรม ${actSel("actMonth", [["","ทุกเดือน"], ...TH_MONTHS.map((m,i)=>[String(i+1).padStart(2,"0"), monthName(i)])], 138)}</label>
       ${actSel("actYear", [["","ทุกปี"], ...years.map(y=>[y,y])], 138)}`;
   },
   body: () => `<div class="act-grid" id="actList"></div>`,
@@ -88,8 +88,9 @@ let homeActTab = HOME_ACT_TABS[0];
 function homeActsRun(){
   const tabs = document.getElementById("haTabs"), list = document.getElementById("haList");
   if (!tabs) return;
-  tabs.innerHTML = HOME_ACT_TABS.map(t=>`<button class="${t===homeActTab?"on":""}" role="tab">${t}</button>`).join("");
-  tabs.querySelectorAll("button").forEach(b=>b.onclick=()=>{ homeActTab=b.textContent; homeActsRun(); });
+  /* data-v = ค่าไทยเดิม (ข้อความบนปุ่มอาจถูกแปลเป็นภาษาอังกฤษ) */
+  tabs.innerHTML = HOME_ACT_TABS.map(t=>`<button class="${t===homeActTab?"on":""}" role="tab" data-v="${t}">${t}</button>`).join("");
+  tabs.querySelectorAll("button").forEach(b=>b.onclick=()=>{ homeActTab=b.dataset.v; homeActsRun(); });
   const items = ACTIVITIES.map((a,i)=>[a,i]).filter(([a])=>a.type===homeActTab).slice(0,2);
   list.innerHTML = items.length ? items.map(([a,i])=>actCardH(a,i)).join("") : `<p class="empty">ยังไม่มีกิจกรรมในหมวดนี้</p>`;
 }
@@ -136,7 +137,7 @@ function purpleCal(root){
       [sat, sat+1].filter(x=>x<=days).forEach(x=>add(x, {kind:"market", title:"ตลาดในสวน", detail:"ทุกเสาร์–อาทิตย์สัปดาห์แรกของเดือน", href: mk?`#/activity/${mk.id}`:""}));
     }
 
-    root.querySelector(".pcal-title").textContent = `${TH_MONTHS[m]} ${y+543}`;
+    root.querySelector(".pcal-title").textContent = `${monthName(m)} ${yearDisp(y)}`;
     root.querySelector(".pcal-grid").innerHTML = cells.map(c=>{
       if (c.off) return `<span class="off">${c.n}</span>`;
       const isT = t.getFullYear()===y && t.getMonth()===m && t.getDate()===c.n;
@@ -152,7 +153,7 @@ function purpleCal(root){
     const b = e.target.closest("button[data-day]"); if (!b) return;
     root.querySelectorAll(".pcal-grid .sel").forEach(x=>x.classList.remove("sel")); b.classList.add("sel");
     const day = +b.dataset.day, info = root.querySelector(".pcal-info");
-    info.innerHTML = `<b>${day} ${TH_MONTHS[d.getMonth()]} ${d.getFullYear()+543}</b>` + items[day].map(it=>`
+    info.innerHTML = `<b>${day} ${monthName(d.getMonth())} ${yearDisp(d.getFullYear())}</b>` + items[day].map(it=>`
       <div class="pi ${it.kind}"><i></i><div><span class="k">${CAL_KIND[it.kind]||""}</span> ${it.title}${it.detail?`<p>${it.detail}</p>`:""}
         ${it.href?`<a href="${it.href}"${/^https?:/.test(it.href)?' target="_blank" rel="noopener"':""}>ดูรายละเอียด →</a>`:""}</div></div>`).join("");
     info.hidden = false;

@@ -85,6 +85,10 @@ def test_static_and_security():
     check("มี header ความปลอดภัย", req.headers["X-Content-Type-Options"] == "nosniff" and req.headers["X-Frame-Options"] == "SAMEORIGIN")
     s, h = call("/api/health")
     check("/api/health ตอบ ok", s == 200 and h["status"] == "ok")
+    hid = call("/api/public")[1]["herbs"][0]["id"]   # ลิงก์สั้นจาก QR ป้ายต้นไม้ (ตัวพิมพ์ใหญ่)
+    r = urllib.request.urlopen(f"{BASE}/P/{hid}")
+    check("ลิงก์สั้น QR /P/<เลข> → หน้าพืช", r.status == 200 and r.geturl().endswith(f"/herb/plant/{hid}"))
+    check("ลิงก์สั้น QR ตัวพิมพ์เล็ก /p/<เลข> ก็ได้", urllib.request.urlopen(f"{BASE}/p/{hid}").geturl().endswith(f"/herb/plant/{hid}"))
 
 
 def test_public_api():
