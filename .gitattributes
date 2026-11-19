@@ -1,0 +1,3 @@
+# ไฟล์ .bat ต้องขึ้นบรรทัดแบบ Windows (CRLF) — ถ้าเป็น LF cmd จะอ่านภาษาไทยในไฟล์ผิดและรันคำสั่งเพี้ยน
+*.bat text eol=crlf
+*.cmd text eol=crlf
