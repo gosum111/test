@@ -28,23 +28,25 @@ const ROUTES={
    body:()=>`<div class="cards" id="list" style="padding-bottom:100px"></div>`,
    run(){const f=()=>{const q=$("#fq").value.trim(),c=$("#fs").value;
      /* แสดงเฉพาะโบรชัวร์ที่มีไฟล์ PDF แล้ว */
-     if(!BROCHURES.some(b=>b[2])){$("#list").innerHTML=`<p class="empty">ขณะนี้ยังไม่มีโบรชัวร์ให้ดาวน์โหลด สอบถามข้อมูลเพิ่มเติมได้ที่ 03-867-6168</p>`;return}
+     if(!BROCHURES.some(b=>b[2])){$("#list").innerHTML=`<p class="empty">ขณะนี้ยังไม่มีโบรชัวร์ให้ดาวน์โหลด สอบถามข้อมูลเพิ่มเติมได้ที่ ${escHtml(sitePhone())}</p>`;return}
      const r=BROCHURES.filter(b=>b[2]&&(c==="ทั้งหมด"||b[1]===c)&&b[0].includes(q));$("#list").innerHTML=r.map(b=>`<article class="card"><div class="img" style="aspect-ratio:3/4">📄</div><div class="body"><span class="meta">${b[1]}</span><h3>${b[0]}</h3>${b[2]?`<a class="btn btn-g" style="margin-top:10px;align-self:flex-start;padding:8px 22px" href="${b[2]}" target="_blank" rel="noopener">ดาวน์โหลด PDF</a>`:`<span class="meta" style="margin-top:10px">ยังไม่มีไฟล์ให้ดาวน์โหลด</span>`}</div></article>`).join("")||`<p class="empty">ไม่พบข้อมูล</p>`};$("#fq").oninput=f;$("#fs").onchange=f;f()}},
  "/activities":ACTIVITIES_PAGE, /* อยู่ในไฟล์ js/activities.js */
  "/contact":{t:"ติดต่อเรา",c:null,bg:BG.herb,img:"images/contact.jpg",body:contactBody,run:contactRun},
  "/cookie":{t:"นโยบายคุกกี้",c:null,bg:BG.about,img:"",body:()=>`<div class="prose"><div class="note">กรุณาใส่นโยบายคุกกี้ฉบับจริง</div><p>เว็บไซต์นี้ใช้คุกกี้เพื่อจดจำการตั้งค่าและปรับปรุงประสบการณ์การใช้งาน ท่านสามารถเลือกยอมรับหรือปฏิเสธได้จากแถบแจ้งเตือนด้านล่างของหน้าเว็บ</p></div>`}
 };
 
-/* หน้า "ติดต่อเรา": ซ่อนข้อมูลติดต่อและแผนที่ไว้ก่อน — แสดงอีกครั้ง: เปลี่ยน false เป็น true */
-const SHOW_CONTACT_INFO=false, SHOW_CONTACT_MAP=false;
-function contactBody(){return `<div class="contact${SHOW_CONTACT_INFO||SHOW_CONTACT_MAP?"":" form-only"}">
- ${SHOW_CONTACT_INFO||SHOW_CONTACT_MAP?`<div class="info">
-  ${SHOW_CONTACT_INFO ? `
-  <div class="row"><span class="ic">📍</span><div><b>ที่อยู่</b><p>39 ทางหลวงระยอง 3191 อ.นิคมพัฒนา จ.ระยอง 21180</p></div></div>
-  <div class="row"><span class="ic">☎</span><div><b>โทรศัพท์</b><a href="tel:038676168">03-867-6168</a>, <a href="tel:0849306060">084-930-6060</a></div></div>
-  <div class="row"><span class="ic">✉</span><div><b>อีเมล</b><a href="mailto:pr_herbgarden@pttplc.com">pr_herbgarden@pttplc.com</a></div></div>
-  <div class="row"><span class="ic">🕘</span><div><b>เวลาทำการ</b><p>สวนสมุนไพร อังคาร–อาทิตย์ 09.00–16.30 น. (ปิดวันจันทร์)<br>พื้นที่ออกกำลังกาย ทุกวัน 06.00–20.00 น.<br>เข้าชมฟรี</p></div></div>` : ""}
-  ${SHOW_CONTACT_MAP ? `<div class="map"><iframe loading="lazy" title="แผนที่" src="https://maps.google.com/maps?q=PTT+Herb+Garden+Rayong&z=13&output=embed"></iframe></div>` : ""}
+/* หน้า "ติดต่อเรา": แสดง/ซ่อนข้อมูลติดต่อและแผนที่ได้จากหน้าแอดมิน (แท็บ ⚙️ ตั้งค่าเว็บไซต์) */
+function contactBody(){
+ const showInfo=SITE.site_show_info==="1", showMap=SITE.site_show_map==="1"&&SITE.site_map_query;
+ const nl=s=>escHtml(s).replace(/\n/g,"<br>");
+ return `<div class="contact${showInfo||showMap?"":" form-only"}">
+ ${showInfo||showMap?`<div class="info">
+  ${showInfo ? `
+  ${SITE.site_address?`<div class="row"><span class="ic">📍</span><div><b>ที่อยู่</b><p>${nl(SITE.site_address)}</p></div></div>`:""}
+  ${sitePhones().length?`<div class="row"><span class="ic">☎</span><div><b>โทรศัพท์</b>${sitePhones().map(telLink).join(", ")}</div></div>`:""}
+  ${SITE.site_email?`<div class="row"><span class="ic">✉</span><div><b>อีเมล</b><a href="mailto:${escHtml(SITE.site_email)}">${escHtml(SITE.site_email)}</a></div></div>`:""}
+  ${SITE.site_hours?`<div class="row"><span class="ic">🕘</span><div><b>เวลาทำการ</b><p>${nl(SITE.site_hours)}</p></div></div>`:""}` : ""}
+  ${showMap ? `<div class="map"><iframe loading="lazy" title="แผนที่" src="https://maps.google.com/maps?q=${encodeURIComponent(SITE.site_map_query)}&z=13&output=embed"></iframe></div>` : ""}
  </div>`:""}
  <form class="cf" id="cf">
   <h2 style="font-size:28px">ส่งข้อความถึงเรา</h2>
@@ -58,6 +60,17 @@ function contactBody(){return `<div class="contact${SHOW_CONTACT_INFO||SHOW_CONT
   <p class="ok" id="ok">✓ ส่งข้อความเรียบร้อย เจ้าหน้าที่จะติดต่อกลับโดยเร็ว</p>
   <p class="ok" id="cfErr" style="color:#c0392b"></p>
  </form></div>`}
+/* ส่วนท้ายเว็บ: ที่อยู่ โทร อีเมล และปุ่มโซเชียล จากข้อมูลใน SITE */
+function renderSiteInfo(){
+  const fc=$("#footContact"),fs=$("#footSocial");
+  if(fc) fc.innerHTML=[escHtml(SITE.site_address).replace(/\n/g,"<br>"),
+    sitePhones().length?"โทร "+sitePhones().map(telLink).join(", "):"",
+    SITE.site_email?`<a href="mailto:${escHtml(SITE.site_email)}">${escHtml(SITE.site_email)}</a>`:""].filter(Boolean).join("<br>");
+  if(fs) fs.innerHTML=[[SITE.site_facebook,"Facebook","f"],[SITE.site_youtube,"YouTube","▶"],[SITE.site_line,"LINE","L"]]
+    .filter(([u])=>/^https:\/\//.test(u||"")).map(([u,l,t])=>`<a href="${escHtml(u)}" target="_blank" rel="noopener" aria-label="${l}">${t}</a>`).join("")
+    +(SITE.site_email?`<a href="mailto:${escHtml(SITE.site_email)}" aria-label="Email">@</a>`:"");
+}
+
 function contactRun(){$("#cf").dataset.start=Date.now();$("#cf").onsubmit=async e=>{
   e.preventDefault();const f=e.target,btn=f.querySelector("button");
   $("#ok").style.display="none";$("#cfErr").style.display="none";btn.disabled=true;
@@ -148,7 +161,7 @@ function go(){
   else if(hm){ROUTES[p]=PATH_MODE&&!window.DATA_LOADED
     ? {t:"กำลังโหลดข้อมูลพืช…",c:"ค้นหาสมุนไพร",noHero:true,body:()=>`<p class="empty">กำลังโหลด…</p>`}
     : {t:"ไม่พบข้อมูลพืชนี้",c:"ค้นหาสมุนไพร",noHero:true,body:()=>`<div class="prose"><p>ขออภัย ไม่พบข้อมูลพืชตามลิงก์หรือป้าย QR นี้ ข้อมูลอาจถูกย้ายหรือปรับปรุงแล้ว</p>
-        <p>ค้นหาพืชที่ต้องการได้จากหน้าค้นหาสมุนไพร หรือสอบถามเจ้าหน้าที่ได้ที่ 03-867-6168</p>
+        <p>ค้นหาพืชที่ต้องการได้จากหน้าค้นหาสมุนไพร หรือสอบถามเจ้าหน้าที่ได้ที่ ${escHtml(sitePhone())}</p>
         <p style="margin-top:30px"><a class="btn btn-g" href="#/herb/search">ไปหน้าค้นหาสมุนไพร →</a></p></div>`};}
   if(scrollCal){
     $('[data-page="/"]').classList.add("on");homeRun();header();document.title=DEFAULT_TITLE;

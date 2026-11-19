@@ -73,7 +73,17 @@ const FORMS = {
   brochures: {title:"โบรชัวร์", fields:[
     ["title","ชื่อโบรชัวร์ *","text"],
     ["type","ประเภท","select",["แนะนำ","แผนที่","สมุนไพร","กิจกรรม"]],
-    ["file","ไฟล์ PDF","pdf"]]}
+    ["file","ไฟล์ PDF","pdf"]]},
+  map_spots: {title:"จุดบนแผนผังสวน", fields:[
+    ["kind","ประเภท","select",[["group","กลุ่มสรรพคุณสมุนไพร (หมุดตัวเลข)"],["place","อาคาร/สถานที่ (หมุดไอคอน)"]]],
+    ["num","เลขกลุ่ม (กลุ่มสรรพคุณ) หรือ ลำดับการแสดง (อาคาร/สถานที่)","number"],
+    ["title","ชื่อ * (เช่น กลุ่มแก้ไข้ ลดความร้อน (Antifever))","text"],
+    ["detail","กลุ่มสรรพคุณ: รายชื่อสมุนไพร คั่นด้วย / (ถ้าเว้นว่าง กลุ่มนี้จะยังไม่แสดงบนเว็บ) · อาคาร/สถานที่: คำอธิบายสั้น ๆ","textarea",null,4],
+    ["icon","ไอคอน (เฉพาะอาคาร/สถานที่ — เลือกจากรายการ หรือพิมพ์ตัวอักษร 1 ตัว เช่น A)","datalist",
+      [["arch","ซุ้มไม้เลื้อย"],["pond","สระน้ำ"],["shop","ร้านค้า"],["museum","พิพิธภัณฑ์/อาคาร"],["zodiac","ลานกลางแจ้ง"],
+       ["lotus","สระบัว"],["pavilion","ศาลา"],["toilet","ห้องน้ำ"],["A","ตัวอักษร A"],["B","ตัวอักษร B"],["C","ตัวอักษร C"]]],
+    ["x","ตำแหน่งหมุด แนวนอน x (0–100 = % จากซ้ายของภาพแผนผัง · เว้นว่าง = ไม่มีหมุด)","text"],
+    ["y","ตำแหน่งหมุด แนวตั้ง y (0–100 = % จากบนของภาพแผนผัง)","text"]]}
 };
 
 /* อ่านไฟล์เป็น data URL — รูปภาพจะถูกย่อให้ด้านยาวไม่เกิน 1600px และบีบอัดเป็น JPG (ไฟล์เล็กลง โหลดเว็บเร็วขึ้น)
@@ -118,7 +128,7 @@ function logout(){
 }
 
 $("#loginForm").onsubmit = async e => {
-  e.preventDefault(); $("#loginErr").textContent = "";
+  e.preventDefault(); $("#loginErr").textContent = ""; $("#loginErr").style.color = "";
   try{
     const remember = $("#remember").checked;
     const j = await api("login", {method:"POST", body:JSON.stringify({password:$("#pw").value, remember})});
@@ -136,7 +146,7 @@ $("#tabs").onclick = e => {
 
 const TYPE_LABEL = {herbs:"สมุนไพร", news:"ข่าวสาร", articles:"บทความ", workshops:"Workshop", brochures:"โบรชัวร์", messages:"ข้อความติดต่อ"};
 const SPECIAL_TITLE = {messages:"ข้อความจากฟอร์มติดต่อ", trash:"ถังขยะ", backups:"สำรองข้อมูล", readiness:"ความพร้อมของเว็บก่อนเปิดใช้จริง",
-  notify:"แจ้งเตือนเมื่อมีคนส่งข้อความ"};
+  notify:"แจ้งเตือนเมื่อมีคนส่งข้อความ", settings:"ตั้งค่าเว็บไซต์", map_spots:"แผนผังสวน"};
 
 async function load(){
   $("#secTitle").textContent = SPECIAL_TITLE[tab] || FORMS[tab].title;
@@ -163,6 +173,7 @@ function render(){
   if(tab === "trash") return renderTrash();
   if(tab === "readiness") return renderReadiness();
   if(tab === "notify") return renderNotify();
+  if(tab === "settings") return renderSettings();
   if(tab === "pages"){
     $("#list").innerHTML = cache.map(p => `
       <div class="item">
@@ -206,14 +217,18 @@ function render(){
     events: it => `${EVENT_KIND[it.kind]} · ${thDate(it.date)}${it.end_date ? ` ถึง ${thDate(it.end_date)}` : ""}`,
     services: it => `ลำดับ ${it.sort} · ไปที่ ${it.link || "-"}`,
     brochures: it => `${it.type} · ${it.file ? "มีไฟล์ PDF" : "ยังไม่มีไฟล์"}`,
+    map_spots: it => `${it.kind === "group" ? `กลุ่มที่ ${it.num}` : `สถานที่ · ลำดับ ${it.num}`} · ${it.x !== "" ? `หมุดที่ ${it.x}, ${it.y}` : "ไม่มีหมุดบนภาพ"}`
+      + (it.kind === "group" && !it.detail ? " · ⚠ ยังไม่มีรายชื่อสมุนไพร (ยังไม่แสดงบนเว็บ)" : ""),
   };
-  const ICON = {brochures:"📄", events:"📅"};
+  const ICON = {brochures:"📄", events:"📅", map_spots:"📍"};
   const note = tab === "events" ? `<div class="note">
       <label style="display:flex;gap:8px;align-items:center;margin:0;font-weight:600"><input type="checkbox" id="marketAuto" style="width:auto;margin:0" ${calSettings.market_auto === "1" ? "checked" : ""}>
         แสดงตลาดนัดอัตโนมัติทุกเสาร์–อาทิตย์สัปดาห์แรกของเดือน</label>
       <label style="display:flex;gap:8px;align-items:center;margin:6px 0 0;font-weight:600"><input type="checkbox" id="closedMonday" style="width:auto;margin:0" ${calSettings.closed_monday !== "0" ? "checked" : ""}>
         แสดง "ปิดทำการ" ทุกวันจันทร์</label>
-      <span class="hint">กิจกรรมจากแท็บ "โครงการและกิจกรรม" แสดงในปฏิทินตามวันที่จัดอยู่แล้ว · แท็บนี้ใช้เพิ่ม<b>วันปิดทำการ</b>, <b>ตลาดนัดพิเศษ</b> หรือ<b>กิจกรรมหลายวัน</b>ที่ไม่ต้องมีหน้าอ่านรายละเอียด</span></div>` : "";
+      <span class="hint">กิจกรรมจากแท็บ "โครงการและกิจกรรม" แสดงในปฏิทินตามวันที่จัดอยู่แล้ว · แท็บนี้ใช้เพิ่ม<b>วันปิดทำการ</b>, <b>ตลาดนัดพิเศษ</b> หรือ<b>กิจกรรมหลายวัน</b>ที่ไม่ต้องมีหน้าอ่านรายละเอียด</span></div>`
+    : tab === "map_spots" ? `<div class="note">ข้อมูลในหน้า <a href="herb/map" target="_blank">แผนผังสวนสมุนไพร ↗</a> — กลุ่มสรรพคุณที่ยังไม่มีรายชื่อสมุนไพรจะยังไม่แสดงบนเว็บ
+      <span class="hint">ภาพแผนผัง: วางไฟล์ไว้ที่ <code>images/map.jpg</code> · ตำแหน่งหมุด x, y เป็น % จากซ้าย/บนของภาพ (เช่น x 50, y 50 = กลางภาพ)</span></div>` : "";
   $("#list").innerHTML = note + cache.map(it => `
     <div class="item">
       <div class="th" style="background-image:url('${esc(it.img || "")}')">${ICON[tab] ? `<span style="display:grid;place-items:center;height:100%;font-size:26px">${ICON[tab]}</span>` : ""}</div>
@@ -242,6 +257,8 @@ $("#list").onclick = async e => {
 };
 
 /* ---------- ตัวอย่างบนหน้าเว็บ (ใช้ css/style.css ตัวจริง และ markup เดียวกับหน้าเว็บ) ---------- */
+let MAP_IMG_OK = false;
+(() => { const i = new Image(); i.onload = () => MAP_IMG_OK = true; i.src = "images/map.jpg"; })();
 const PV_LABEL = t => `<p style="font:600 13px 'IBM Plex Sans Thai',sans-serif;letter-spacing:.04em;color:#8a7fa0;margin:0 0 14px">${t}</p>`;
 const thDate = s => { if(!s) return ""; const [y, m, d] = s.split("-"); return `${d}/${m}/${y}`; };
 const PREVIEWS = {
@@ -333,7 +350,24 @@ const PREVIEWS = {
   brochures: d => `<section style="padding:32px 28px 48px">
       ${PV_LABEL("หน้าโบรชัวร์")}
       <div class="cards" style="grid-template-columns:minmax(0,320px)"><article class="card"><div class="img" style="aspect-ratio:3/4">📄</div><div class="body"><span class="meta">${d.type}</span><h3>${d.title || "(ยังไม่ได้ใส่ชื่อ)"}</h3>${d.file ? `<a class="btn btn-g" style="margin-top:10px;align-self:flex-start;padding:8px 22px" href="${d.file}" target="_blank">ดาวน์โหลด PDF</a>` : `<span class="meta" style="margin-top:10px">ยังไม่มีไฟล์ให้ดาวน์โหลด</span>`}</div></article></div>
-    </section>`
+    </section>`,
+  /* ใช้ตัววาดหมุด/การ์ดเดียวกับหน้าเว็บจริง (js/garden-map.js)
+     กรอบตัวอย่างไม่รันสคริปต์ → เช็กล่วงหน้าว่ามีภาพแผนผังไหม (MAP_IMG_OK) แทน onerror */
+  map_spots: d => {
+    gmSetSpots([{id:0, kind:d.kind, num:parseInt(d.num, 10) || 0, icon:d.icon || "", title:d.title || "(ยังไม่ได้ใส่ชื่อ)",
+                 detail:d.detail || "", x:(d.x || "").trim(), y:(d.y || "").trim()}]);
+    const it = (d.kind === "group" ? GM_GROUPS : GM_PLACES)[0];
+    const pinOk = it.x >= 0 && it.x <= 100 && it.y >= 0 && it.y <= 100;
+    const text = it.h ?? it.d;
+    return `<section style="padding:28px">
+      ${PV_LABEL("หน้าแผนผังสวนสมุนไพร")}
+      <div class="gm-map${MAP_IMG_OK ? "" : " nomap"}">${MAP_IMG_OK ? `<img src="images/map.jpg" alt="">` : ""}
+        ${pinOk ? `<span class="gm-pin" style="left:${it.x}%;top:${it.y}%">${gmBadge(it)}</span>` : ""}</div>
+      <p class="hint" style="margin:8px 0 18px;color:#8a7fa0">${pinOk ? "" : "ไม่มีหมุดบนภาพ (ใส่ตำแหน่ง x, y 0–100 เพื่อแสดงหมุด)"}</p>
+      <div class="gm-list"><div class="gm-item">${gmBadge(it)}<div><h4>${it.t}</h4>${text ? `<p>${text}</p>` : ""}</div></div></div>
+      ${d.kind === "group" && !d.detail ? `<p style="color:#b25b00;margin-top:14px">⚠ ยังไม่มีรายชื่อสมุนไพร — กลุ่มนี้จะยังไม่แสดงบนเว็บ</p>` : ""}
+    </section>`;
+  }
 };
 
 let pvTimer;
@@ -858,6 +892,76 @@ $("#list").addEventListener("click", async e => {
     res2.textContent = r.ok ? "✓ ส่งสำเร็จ — ลองเช็กกล่องข้อความ" : "✗ " + r.error;
   }catch(err){ res.style.color = "var(--red)"; res.textContent = "✗ " + err.message; }
   finally{ b.disabled = false; }
+});
+
+/* ---------- ตั้งค่าเว็บไซต์: ข้อมูลติดต่อ/โซเชียล + เปลี่ยนรหัสแอดมิน ---------- */
+function renderSettings(){
+  const c = cache;   /* GET /api/settings */
+  const inp = (k, label, ph = "", type = "text") => `<label>${label}<input name="${k}" type="${type}" value="${esc(c[k])}" placeholder="${esc(ph)}"></label>`;
+  const chk = (k, label) => `<label style="display:flex;gap:8px;align-items:center;font-weight:400;margin:6px 0"><input type="checkbox" name="${k}" style="width:auto;margin:0" ${c[k] === "1" ? "checked" : ""}>${label}</label>`;
+  const envPw = c.password_source === "env";
+  $("#list").innerHTML = `
+  <form id="siteForm">
+    <div class="note">ข้อมูลนี้แสดงที่<b>ส่วนท้ายของทุกหน้า</b> และหน้า <a href="contact" target="_blank">ติดต่อเรา ↗</a> · บันทึกแล้วเห็นผลทันที</div>
+    <div class="nf">
+      <h3>📍 ข้อมูลติดต่อ</h3>
+      <label>ที่อยู่<textarea name="site_address" rows="2">${esc(c.site_address)}</textarea></label>
+      <div class="two">
+        ${inp("site_phones", "เบอร์โทร (หลายเบอร์คั่นด้วย ,)", "03-867-6168, 084-930-6060")}
+        ${inp("site_email", "อีเมล", "info@example.com", "email")}
+      </div>
+      <label>เวลาทำการ (ขึ้นบรรทัดใหม่ได้)<textarea name="site_hours" rows="3">${esc(c.site_hours)}</textarea></label>
+    </div>
+    <div class="nf">
+      <h3>🌐 โซเชียลมีเดีย <span class="hint" style="font-weight:400">(เว้นว่าง = ไม่แสดงปุ่ม · ต้องขึ้นต้นด้วย https://)</span></h3>
+      ${inp("site_facebook", "Facebook", "https://www.facebook.com/...")}
+      ${inp("site_youtube", "YouTube", "https://www.youtube.com/@...")}
+      ${inp("site_line", "LINE Official Account", "https://lin.ee/...")}
+    </div>
+    <div class="nf">
+      <h3>📄 หน้าติดต่อเรา</h3>
+      ${chk("site_show_info", "แสดงที่อยู่ เบอร์โทร อีเมล และเวลาทำการ ข้างฟอร์มส่งข้อความ")}
+      ${chk("site_show_map", "แสดงแผนที่ Google Maps")}
+      ${inp("site_map_query", "คำค้นหาตำแหน่งบนแผนที่ (ชื่อสถานที่ หรือพิกัด เช่น 12.7, 101.2)", "PTT Herb Garden Rayong")}
+    </div>
+    <button class="btn">บันทึกข้อมูลเว็บไซต์</button>
+  </form>
+
+  <form id="pwForm" style="margin-top:28px">
+    <div class="nf">
+      <h3>🔑 เปลี่ยนรหัสแอดมิน</h3>
+      ${envPw ? `<p class="hint">รหัสถูกตั้งไว้ด้วยค่า <code>ADMIN_PASSWORD</code> ของเซิร์ฟเวอร์ — เปลี่ยนจากหน้านี้ไม่ได้</p>` : `
+      <p class="hint">เปลี่ยนแล้ว<b>ทุกคนจะถูกออกจากระบบ</b> (รวมถึงเครื่องนี้) ต้องเข้าสู่ระบบใหม่ด้วยรหัสใหม่</p>
+      <label>รหัสปัจจุบัน<input type="password" name="current" required autocomplete="current-password"></label>
+      <div class="two">
+        <label>รหัสใหม่ (อย่างน้อย 8 ตัวอักษร)<input type="password" name="new" required minlength="8" autocomplete="new-password"></label>
+        <label>พิมพ์รหัสใหม่อีกครั้ง<input type="password" name="new2" required minlength="8" autocomplete="new-password"></label>
+      </div>
+      <p class="err" id="pwErr" style="color:var(--red)"></p>
+      <button class="btn">เปลี่ยนรหัส</button>`}
+    </div>
+  </form>`;
+}
+$("#list").addEventListener("submit", async e => {
+  if(e.target.id === "siteForm"){
+    e.preventDefault();
+    const f = e.target, d = Object.fromEntries(new FormData(f));
+    d.site_show_info = f.site_show_info.checked ? "1" : "0";
+    d.site_show_map = f.site_show_map.checked ? "1" : "0";
+    try{ cache = {...cache, ...await api("settings", {method:"PUT", body:JSON.stringify(d)})}; render(); toast("บันทึกข้อมูลเว็บไซต์แล้ว"); }
+    catch(err){ alert(err.message); }
+  }else if(e.target.id === "pwForm"){
+    e.preventDefault();
+    const f = e.target, err = $("#pwErr");
+    err.textContent = "";
+    if(f.new.value !== f.new2.value){ err.textContent = "รหัสใหม่ทั้งสองช่องไม่ตรงกัน"; return; }
+    try{
+      await api("password", {method:"POST", body:JSON.stringify({current:f.current.value, new:f.new.value})});
+      clearSession();
+      $("#loginErr").style.color = "var(--g)";
+      $("#loginErr").textContent = "เปลี่ยนรหัสแล้ว — กรุณาเข้าสู่ระบบด้วยรหัสใหม่";
+    }catch(ex){ err.textContent = ex.message; }
+  }
 });
 
 /* ---------- ความพร้อมของเว็บ ---------- */

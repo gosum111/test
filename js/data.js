@@ -4,6 +4,22 @@ const CONSERVATION=["หายาก","ใกล้สูญพันธุ์",
 /* เครดิตรูป (เช่น "ชื่อผู้ถ่าย · CC BY-SA 4.0 · https://commons.wikimedia.org/...") → ลิงก์ที่กดได้ */
 const creditLine=c=>c?`<p class="img-credit">ภาพ: ${String(c).replace(/[&<>"]/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[x])).replace(/https?:\/\/\S+/g,u=>`<a href="${u}" target="_blank" rel="noopener">ที่มา</a>`)}</p>`:"";
 const statusBadge=s=>s?`<span class="hs-badge lv${CONSERVATION.indexOf(s)+1}">${s}</span>`:"";
+/* ข้อมูลติดต่อ/โซเชียล — ค่าจริงมาจากฐานข้อมูล (หน้าแอดมิน → แท็บ ⚙️ ตั้งค่าเว็บไซต์) · ค่าข้างล่างใช้เมื่อเปิดไฟล์ตรง ๆ */
+const SITE={
+  site_address:"39 ทางหลวงระยอง 3191 อ.นิคมพัฒนา จ.ระยอง 21180",
+  site_phones:"03-867-6168, 084-930-6060",
+  site_email:"pr_herbgarden@pttplc.com",
+  site_hours:"สวนสมุนไพร อังคาร–อาทิตย์ 09.00–16.30 น. (ปิดวันจันทร์)\nพื้นที่ออกกำลังกาย ทุกวัน 06.00–20.00 น.\nเข้าชมฟรี",
+  site_facebook:"https://www.facebook.com/ptt.herbgarden",
+  site_youtube:"https://www.youtube.com/@pttherbgardenchannel8378",
+  site_line:"",
+  site_map_query:"PTT Herb Garden Rayong",
+  site_show_info:"0", site_show_map:"0"
+};
+const escHtml=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const sitePhones=()=>String(SITE.site_phones||"").split(",").map(s=>s.trim()).filter(Boolean);
+const sitePhone=()=>sitePhones()[0]||"";
+const telLink=p=>`<a href="tel:${p.replace(/[^\d+]/g,"")}">${escHtml(p)}</a>`;
 /* แปลงข้อความง่าย ๆ เป็นหน้าเว็บ (ใช้กับหน้าเนื้อหาที่แก้จากหน้าแอดมิน) — ถ้าเขียนเป็น HTML มาอยู่แล้วจะใช้ตามนั้น
    เว้นบรรทัด = ย่อหน้าใหม่ · "## หัวข้อ" = หัวข้อ · "- หัวข้อ: รายละเอียด" = เส้นเวลา · "- ข้อความ" = รายการ */
 function richText(s){

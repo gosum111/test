@@ -91,7 +91,7 @@ def test_public_api():
     print("\n[ข้อมูลสาธารณะ]")
     s, d = call("/api/public")
     check("/api/public ตอบได้", s == 200)
-    for k in ("news", "articles", "workshops", "brochures", "herbs", "pages", "activities", "services", "events", "settings"):
+    for k in ("news", "articles", "workshops", "brochures", "herbs", "pages", "activities", "services", "events", "map_spots", "settings"):
         check(f"มีข้อมูล {k}", k in d)
     if d.get("herbs"):
         h = d["herbs"][0]
@@ -115,6 +115,41 @@ def test_crud_trash_restore(tok):
     check("ตรวจข้อมูล: จังหวัดผิด → ปฏิเสธ", call("/api/herbs", {"th": "x", "province": "ไม่มีจังหวัดนี้"}, tok)[0] == 400)
     check("ตรวจข้อมูล: สถานะผิด → ปฏิเสธ", call("/api/herbs", {"th": "x", "status": "สูญพันธุ์แล้ว"}, tok)[0] == 400)
     call(f"/api/news/{n['id']}", token=tok, method="DELETE")
+
+
+def test_site_and_map(tok):
+    print("\n[ตั้งค่าเว็บไซต์ / แผนผังสวน / เปลี่ยนรหัส]")
+    s, st = call("/api/settings", token=tok)
+    check("อ่านข้อมูลเว็บไซต์ได้ (แอดมิน)", s == 200 and "site_phones" in st and "password_source" in st)
+    check("อ่านข้อมูลเว็บไซต์ (แอดมิน) โดยไม่ล็อกอินไม่ได้", call("/api/settings")[0] == 401)
+    check("ตรวจข้อมูล: ลิงก์โซเชียลไม่ใช่ https → ปฏิเสธ", call("/api/settings", {"site_facebook": "http://x.com"}, tok, "PUT")[0] == 400)
+    check("ตรวจข้อมูล: อีเมลผิดรูปแบบ → ปฏิเสธ", call("/api/settings", {"site_email": "abc"}, tok, "PUT")[0] == 400)
+    s, st2 = call("/api/settings", {"site_phones": "02-000-0000", "site_show_info": "1"}, tok, "PUT")
+    pub = call("/api/public")[1]["settings"]
+    check("แก้ข้อมูลติดต่อแล้วหน้าเว็บได้ค่าใหม่", s == 200 and pub["site_phones"] == "02-000-0000" and pub["site_show_info"] == "1")
+    call("/api/settings", {k: st[k] for k in ("site_phones", "site_show_info")}, tok, "PUT")   # คืนค่าเดิม
+
+    spots = call("/api/public")[1].get("map_spots", [])
+    check("แผนผังสวน: มีข้อมูลกลุ่มและสถานที่", any(x["kind"] == "group" for x in spots) and any(x["kind"] == "place" for x in spots),
+          f"{len(spots)} จุด")
+    bad = [({"kind": "group", "num": "21", "title": "x", "x": "150", "y": "10"}, "ตำแหน่งเกิน 100"),
+           ({"kind": "group", "num": "21", "title": "x", "x": "10", "y": ""}, "ใส่ x ไม่ใส่ y"),
+           ({"kind": "place", "num": "1", "title": "x", "icon": "ไม่มีไอคอนนี้"}, "ไอคอนผิด"),
+           ({"kind": "other", "num": "1", "title": "x"}, "ประเภทผิด"),
+           ({"kind": "group", "num": "", "title": "x"}, "ไม่ใส่เลขกลุ่ม")]
+    for data, why in bad:
+        check(f"แผนผังสวน: {why} → ปฏิเสธ", call("/api/map_spots", data, tok)[0] == 400)
+    s, sp = call("/api/map_spots", {"kind": "place", "num": "99", "icon": "D", "title": "จุดทดสอบ", "x": "12.50", "y": "40"}, tok)
+    check("แผนผังสวน: เพิ่มสถานที่ได้", s == 201 and sp["x"] == "12.5")
+    if s == 201:
+        s, sp2 = call(f"/api/map_spots/{sp['id']}", {**sp, "title": "จุดทดสอบ (แก้)", "x": "", "y": ""}, tok, "PUT")
+        check("แผนผังสวน: แก้ได้ (ลบหมุดออก)", s == 200 and sp2["title"] == "จุดทดสอบ (แก้)" and sp2["x"] == "")
+        s, d = call(f"/api/map_spots/{sp['id']}", token=tok, method="DELETE")
+        check("แผนผังสวน: ลบแล้วไปถังขยะ", s == 200 and any(g["type"] == "map_spots" for g in call("/api/trash", token=tok)[1]))
+
+    s, r = call("/api/password", {"current": PW, "new": "new-password-123"}, tok)
+    check("เปลี่ยนรหัส: รหัสตั้งจาก ADMIN_PASSWORD → ปฏิเสธพร้อมเหตุผล", s == 400 and "ADMIN_PASSWORD" in r.get("error", ""))
+    check("เปลี่ยนรหัสโดยไม่ล็อกอินไม่ได้", call("/api/password", {"current": "x", "new": "y" * 8})[0] == 401)
 
 
 def test_import(tok):
@@ -275,6 +310,7 @@ def main():
         test_public_api()
         tok = login()
         test_crud_trash_restore(tok)
+        test_site_and_map(tok)
         test_import(tok)
         test_backup(tok)
         test_contact_and_spam()

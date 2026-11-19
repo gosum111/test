@@ -16,8 +16,9 @@ const GM_ICONS = {
 };
 const gmIcon = k => `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${GM_ICONS[k]}</svg>`;
 
+/* ข้อมูลจริงอยู่ในฐานข้อมูล (หน้าแอดมิน → แท็บ 🗺 แผนผังสวน) — ข้อมูลในไฟล์นี้ใช้เมื่อเปิดไฟล์ตรง ๆ ไม่มีเซิร์ฟเวอร์ */
 /* ---- 20 กลุ่มสรรพคุณ (กลุ่ม 1–9 คัดจากเว็บจริง, 10–20 รอใส่ข้อมูล) ---- */
-const GM_GROUPS = [
+let GM_GROUPS = [
   { n:1,  x:61.5, y:25.2, t:"กลุ่มพืชหอมต่างๆ (Aromatic Plants)",
     h:"กระดังงาไทย / กระดังงาสงขลา / กานพลู / กุหลาบมอญ / ขันทองพยาบาท / จำปา / จำปาขาว / จำปี / จำปีสิรินธร / ชมนาด / ดีปลี / ตะไคร้บ้าน / ตะไคร้หอม / นมแมว / มณฑา / มะกรูด / มะนาว / มะตูม / มะพลับ / มหาหงส์ / โมกหลวง / พิกุล / ยี่หร่า / ส้มเขียวหวาน / ส้มซ่า / มะขามป้อม / มะเฟือง / มะดัน" },
   { n:2,  x:63.3, y:66.2, t:"กลุ่มแก้โรคผิวหนัง (Treatment of Skin Diseases)",
@@ -40,10 +41,10 @@ const GM_GROUPS = [
   { n:13, x:10.8, y:71.7 }, { n:14, x:14.4, y:44.2 }, { n:15, x:11.8, y:57.4 },
   { n:16, x:15.3, y:31.9 }, { n:17, x:5.2,  y:70.6 }, { n:18, x:9.8,  y:46.8 },
   { n:19 },                 { n:20, x:18.1, y:27.3 }
-].map(g => ({ t:`กลุ่มที่ ${g.n} (รอใส่ชื่อกลุ่ม)`, h:"รอใส่รายชื่อสมุนไพร", ...g }));
+].map(g => ({ t:`กลุ่มที่ ${g.n}`, h:"", ...g }));
 
 /* ---- อาคารและสถานที่แนะนำ ---- */
-const GM_PLACES = [
+let GM_PLACES = [
   { id:"arch",     icon:"arch",     x:49.3, y:19.2, t:"ซุ้มไม้เลื้อย (Creeper Arches)", d:"พันธุ์ไม้สมุนไพรเลื้อยขึ้นตามโครงสร้างทางเดิน เพิ่มบรรยากาศร่มรื่นตลอดแนวสวนด้านตะวันตก" },
   { id:"pond",     icon:"pond",     x:6.1,  y:48.3, t:"สระกฤษณา (Eaglewood (Krishana) Pond)", d:"สระน้ำขนาดใหญ่ มีเงาสะท้อนภาพของกฤษณาลงบนผิวน้ำ" },
   { id:"shop",     icon:"shop",     x:80.5, y:8.6,  t:"ศูนย์บริการร้านค้าชุมชน", d:"ร้านอาหารและเครื่องดื่ม" },
@@ -64,13 +65,23 @@ function gmBadge(p){
   return `<span class="gm-num ${p.purple?"purple":"gold"}">${gmIcon(p.icon)}</span>`;
 }
 
-/* แสดงเฉพาะกลุ่มที่มีข้อมูลแล้ว — กลุ่มที่ยังเป็น "รอใส่..." ซ่อนไว้จนกว่าจะได้ข้อมูลจากสวน */
-const GM_SHOWN = GM_GROUPS.filter(g => !/^รอใส่/.test(g.h));
+/* ข้อมูลจากฐานข้อมูล (api/public → map_spots) แทนที่ข้อมูลในไฟล์นี้ */
+function gmSetSpots(list){
+  const pos = s => s.x !== "" && s.y !== "" ? {x:parseFloat(s.x), y:parseFloat(s.y)} : {};
+  GM_GROUPS = list.filter(s => s.kind === "group").map(s => ({n:s.num, t:escHtml(s.title), h:escHtml(s.detail), ...pos(s)}));
+  GM_PLACES = list.filter(s => s.kind === "place").map(s => {
+    const icon = GM_ICONS[s.icon] ? s.icon : null;
+    return {id:"p" + s.id, icon, letter:icon ? null : escHtml(s.icon || "•"), purple:s.icon === "toilet",
+            t:escHtml(s.title), d:escHtml(s.detail), ...pos(s)};
+  });
+}
 
 function gmBody(){
+  /* แสดงเฉพาะกลุ่มที่มีรายชื่อสมุนไพรแล้ว — กลุ่มที่ยังว่างซ่อนไว้จนกว่าจะได้ข้อมูลจากสวน */
+  const GM_SHOWN = GM_GROUPS.filter(g => g.h);
   const pins = [
     ...GM_SHOWN.filter(g=>g.x!=null).map(g=>`<button class="gm-pin" style="left:${g.x}%;top:${g.y}%" data-tab="groups" data-id="${g.n}" aria-label="${g.t}">${gmBadge(g)}<span class="gm-tip">${g.t}</span></button>`),
-    ...GM_PLACES.map(p=>`<button class="gm-pin" style="left:${p.x}%;top:${p.y}%" data-tab="places" data-id="${p.id}" aria-label="${p.t}">${gmBadge(p)}<span class="gm-tip">${p.t}</span></button>`)
+    ...GM_PLACES.filter(p=>p.x!=null).map(p=>`<button class="gm-pin" style="left:${p.x}%;top:${p.y}%" data-tab="places" data-id="${p.id}" aria-label="${p.t}">${gmBadge(p)}<span class="gm-tip">${p.t}</span></button>`)
   ].join("");
   return `
   <div class="gm-map">

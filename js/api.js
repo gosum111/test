@@ -37,7 +37,14 @@ async function apiLoadPublic(){
     if(d.services) SERVICES.splice(0, SERVICES.length, ...d.services.map(s => ({title:s.title.replace(/\n/g, "<br>"), img:s.img, link:s.link})));
     /* ปฏิทิน */
     if(d.events) CAL_EVENTS.splice(0, CAL_EVENTS.length, ...d.events);
-    if(d.settings) Object.assign(CAL_SETTINGS, d.settings);
+    if(d.settings){
+      Object.assign(CAL_SETTINGS, d.settings);
+      /* ข้อมูลติดต่อ/โซเชียล (แก้ได้จากหน้าแอดมิน) → ส่วนท้ายเว็บ + หน้าติดต่อเรา */
+      Object.keys(SITE).forEach(k => { if(k in d.settings) SITE[k] = d.settings[k]; });
+      renderSiteInfo();
+    }
+    /* แผนผังสวน (แก้ได้จากหน้าแอดมิน) */
+    if(d.map_spots) gmSetSpots(d.map_spots);
     if(d.settings && d.settings.demo === "0"){ window.DEMO = false; applyDemo(false); }   /* เว็บจริง: ซ่อนแถบทดลอง */
 
     /* หน้าเนื้อหาที่แก้จากหน้าแอดมิน (ประวัติ, อาคาร, รางวัล, นโยบายคุกกี้) */
@@ -63,7 +70,7 @@ async function apiSendContact(form){
   let r;
   try{
     r = await fetch("api/contact", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(data)});
-  }catch(e){ throw new Error("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่ หรือโทร 03-867-6168"); }
+  }catch(e){ throw new Error("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่" + (sitePhone() ? " หรือโทร " + sitePhone() : "")); }
   if(!r.ok){ const j = await r.json().catch(()=>({})); throw new Error(j.error || "ส่งข้อความไม่สำเร็จ"); }
 }
 

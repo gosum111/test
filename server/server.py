@@ -168,6 +168,17 @@ CREATE TABLE IF NOT EXISTS events (
   link TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
 );
+CREATE TABLE IF NOT EXISTS map_spots (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  kind TEXT NOT NULL DEFAULT 'group',
+  num INTEGER NOT NULL DEFAULT 0,
+  icon TEXT NOT NULL DEFAULT '',
+  title TEXT NOT NULL,
+  detail TEXT NOT NULL DEFAULT '',
+  x TEXT NOT NULL DEFAULT '',
+  y TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+);
 CREATE TABLE IF NOT EXISTS sessions (
   token_hash TEXT PRIMARY KEY,
   expires REAL NOT NULL,
@@ -304,10 +315,74 @@ SEED_SERVICES = [
     ("Workshop\nสมุนไพร", "images/service3.jpg", "#/activities", 3),
     ("Sport Complex\nและสนามฟุตบอล", "images/service4.jpg", "#/activities", 4),
 ]
+# แผนผังสวน (ย้ายมาจาก js/garden-map.js) — kind, num, icon, title, detail, x, y
+# group = กลุ่มสรรพคุณ (num = เลขกลุ่ม · detail ว่าง = ยังไม่แสดงบนเว็บ)
+# place = อาคาร/สถานที่ (num = ลำดับ · icon = ชื่อไอคอนใน MAP_ICONS หรือตัวอักษร 1 ตัว เช่น A)
+# x, y = ตำแหน่งหมุดบนภาพ images/map.jpg (% จากซ้าย/บน · ว่าง = ไม่มีหมุด)
+SEED_MAP_SPOTS = [
+    ("group", 1, "", "กลุ่มพืชหอมต่างๆ (Aromatic Plants)",
+     "กระดังงาไทย / กระดังงาสงขลา / กานพลู / กุหลาบมอญ / ขันทองพยาบาท / จำปา / จำปาขาว / จำปี / จำปีสิรินธร / ชมนาด / ดีปลี / ตะไคร้บ้าน / ตะไคร้หอม / นมแมว / มณฑา / มะกรูด / มะนาว / มะตูม / มะพลับ / มหาหงส์ / โมกหลวง / พิกุล / ยี่หร่า / ส้มเขียวหวาน / ส้มซ่า / มะขามป้อม / มะเฟือง / มะดัน",
+     "61.5", "25.2"),
+    ("group", 2, "", "กลุ่มแก้โรคผิวหนัง (Treatment of Skin Diseases)",
+     "ข่า / ขมิ้นชัน / ข่าใหญ่ / ไพล / คำแสด / ดีปลี / ผักคราดหัวแหวน / ฝรั่ง / มะขาม / มะขามเทศ / มะเกลือ / มะคำดีควาย / มะหาด / พลับพลึง / ฟักข้าว / ระกำ / ว่านหางจระเข้ / สับปะรด / สำหล้า / เสลดพังพอนตัวเมีย",
+     "63.3", "66.2"),
+    ("group", 3, "", "กลุ่มต้านฮีสตามีน (Antihistaminic Agents)",
+     "กะเม็ง / กำยาน / ขลู่ / เถาคัน / เทียนบ้าน / บอระเพ็ด / มะระขี้นก / มะรุม / มังคุด / ย่านาง / หญ้าคา / หญ้าหนวดแมว / หญ้าใต้ใบ (เล็ก) / เสี้ยนกุ่ง / สาบเสือ / แก้ว / เทพทาโร",
+     "49.8", "48.6"),
+    ("group", 4, "", "กลุ่มยาแก้อ่อนเพลีย บำรุงกำลัง (Tonic)",
+     "กะเพรา / กำยาน / ขี้เหล็ก / บุกหลวง / มะตูม / มะขาม / มะดัน", "53.2", "25.7"),
+    ("group", 5, "", "กลุ่มแก้ไข้ ลดความร้อน (Antifever, Antipyretic)",
+     "กะเพรา / กำยาน / ขี้เหล็ก / ตะไคร้บ้าน / เทียนบ้าน / ดีปลี / ฟ้าทะลายโจร / มะยม / มะกรูด / มะขามป้อม / มะดัน / มังคุด / ย่านาง / ลำโพง / สาบเสือ / หญ้าคา / หญ้าหนวดแมว / มะระขี้นก / สมอพิเภก / สมอไทย",
+     "45.2", "37.9"),
+    ("group", 6, "", "กลุ่มยาขับน้ำนม (Galactogogues)",
+     "กานพลู / กุยช่าย / ไทรย้อยใบแหลม / มะเกลือเทศแดง / เจต / อะลาง", "46.6", "25.5"),
+    ("group", 7, "", "กลุ่มยาถ่าย ยาระบาย (Cathartic, Laxative)",
+     "กากหมาก / ชุมเห็ดเทศ / ลูก / ตองตึง / บุกค้ำเสา / บุกหอม / ส้มป่อย / มะขามแขก / มะขามเทศ / มะขาม / มะตูม / มะเกลือ / มะหาด / ระกำ / ว่านหางจระเข้ / สมอไทย / สมอพิเภก / สมอเทศ",
+     "37.1", "55.8"),
+    ("group", 8, "", "กลุ่มยาสมุนไพรตำรับไทย (Thai Herbal Remedies)",
+     "ขมิ้นชัน / กระชาย / ยอ / กานพลู / บอระเพ็ด / มะตูมเทศ / ดีปลี / ขี้เหล็ก / ชะพลู / ฟ้าทะลายโจร / มะขามป้อม / มะเกลือ / มะหาด / สมอพิเภก / สมอไทย / สมอเทศ / สมุนไพรตำรับยาไทย",
+     "36.3", "40.5"),
+    ("group", 9, "", "กลุ่มยาแก้ไอ ขับเสมหะ (Antitussive, Expectorants)",
+     "ข่า / กระชาย / กระวาน / กานพลู / ขิง / ขี้เหล็ก / ตะไคร้หอม / มะกรูด / มะขามป้อม / มะดัน / มังคุด / มะนาว / สมอไทย / สมอพิเภก / สมอเทศ / หญ้าหนวดแมว",
+     "28.6", "39.2"),
+    *[("group", n, "", f"กลุ่มที่ {n}", "", x, y) for n, x, y in [
+        (10, "30.6", "28.3"), (11, "22.5", "57.4"), (12, "24.0", "31.4"), (13, "10.8", "71.7"),
+        (14, "14.4", "44.2"), (15, "11.8", "57.4"), (16, "15.3", "31.9"), (17, "5.2", "70.6"),
+        (18, "9.8", "46.8"), (19, "", ""), (20, "18.1", "27.3")]],
+    ("place", 1, "arch", "ซุ้มไม้เลื้อย (Creeper Arches)",
+     "พันธุ์ไม้สมุนไพรเลื้อยขึ้นตามโครงสร้างทางเดิน เพิ่มบรรยากาศร่มรื่นตลอดแนวสวนด้านตะวันตก", "49.3", "19.2"),
+    ("place", 2, "pond", "สระกฤษณา (Eaglewood (Krishana) Pond)", "สระน้ำขนาดใหญ่ มีเงาสะท้อนภาพของกฤษณาลงบนผิวน้ำ", "6.1", "48.3"),
+    ("place", 3, "shop", "ศูนย์บริการร้านค้าชุมชน", "ร้านอาหารและเครื่องดื่ม", "80.5", "8.6"),
+    ("place", 4, "museum", "อาคารพิพิธภัณฑ์สมุนไพร (Museum Building)", "รวบรวมประวัติความเป็นมาของสมุนไพรไทยและวิถีชีวิตแบบไทย", "84.5", "26.5"),
+    ("place", 5, "zodiac", "ลาน 12 ราศี (Zodiac Court)", "นาฬิกาแดดบอกเวลาตามจักรราศี", "32.4", "57.9"),
+    ("place", 6, "lotus", "สระบัวหลวง", "สระบัวรูปครึ่งวงกลม เป็นสัญลักษณ์ต้อนรับผู้มาเยือน", "60.9", "48.1"),
+    ("place", 7, "pavilion", "ศาลาพักผ่อน (Recreation Pavilion)", "ศาลาไทยสำหรับพักผ่อน", "10.2", "27.3"),
+    ("place", 8, "A", "อาคารเฉลิมพระเกียรติ 50 พรรษา", "", "85.0", "41.6"),
+    ("place", 9, "B", "ห้องประชุมสายน้ำผึ้ง", "", "87.8", "59.0"),
+    ("place", 10, "C", "จุดขึ้นรถบริการนำชมสวนสมุนไพร", "", "72.1", "25.2"),
+    ("place", 11, "toilet", "ห้องน้ำ (Toilet)", "", "82.9", "8.6"),
+]
+MAP_KINDS = {"group": "กลุ่มสรรพคุณ", "place": "อาคาร/สถานที่"}
+MAP_ICONS = {"arch", "pond", "shop", "museum", "zodiac", "lotus", "pavilion", "toilet"}   # ต้องตรงกับ GM_ICONS ใน js/garden-map.js
 EVENT_KINDS = {"event": "กิจกรรม", "market": "ตลาดนัด", "closed": "ปิดทำการ"}
+# ข้อมูลเว็บไซต์ที่แก้ได้จากหน้าแอดมิน (แท็บ ⚙️ ตั้งค่าเว็บไซต์) — แสดงในหน้าติดต่อเราและส่วนท้ายของทุกหน้า
+SITE_INFO_DEFAULTS = {
+    "site_address": "39 ทางหลวงระยอง 3191 อ.นิคมพัฒนา จ.ระยอง 21180",
+    "site_phones": "03-867-6168, 084-930-6060",
+    "site_email": "pr_herbgarden@pttplc.com",
+    "site_hours": "สวนสมุนไพร อังคาร–อาทิตย์ 09.00–16.30 น. (ปิดวันจันทร์)\nพื้นที่ออกกำลังกาย ทุกวัน 06.00–20.00 น.\nเข้าชมฟรี",
+    "site_facebook": "https://www.facebook.com/ptt.herbgarden",
+    "site_youtube": "https://www.youtube.com/@pttherbgardenchannel8378",
+    "site_line": "",
+    "site_map_query": "PTT Herb Garden Rayong",
+    "site_show_info": "0",   # หน้าติดต่อเรา: แสดงที่อยู่/โทร/เวลาทำการข้างฟอร์ม (1 = แสดง)
+    "site_show_map": "0",    # หน้าติดต่อเรา: แสดงแผนที่ Google Maps (1 = แสดง)
+}
+SITE_URL_KEYS = ("site_facebook", "site_youtube", "site_line")
 DEFAULT_SETTINGS = {
     "market_auto": "1",     # ตลาดนัดอัตโนมัติ: เสาร์–อาทิตย์สัปดาห์แรกของเดือน
     "closed_monday": "1",   # ปิดทำการทุกวันจันทร์ (ตามเวลาทำการในหน้าติดต่อเรา)
+    **SITE_INFO_DEFAULTS,
 }
 # ตารางใหม่จะได้ข้อมูลตั้งต้นเฉพาะตอนสร้างครั้งแรก (ลบหมดแล้วจะไม่เด้งกลับมา)
 SEEDS = {
@@ -321,6 +396,7 @@ SEEDS = {
     "articles": ("INSERT INTO articles(date,title,excerpt,img,body) VALUES(?,?,?,?,?)", SEED_ARTICLES),
     "workshops": ("INSERT INTO workshops(name,detail,img) VALUES(?,?,?)", SEED_WORKSHOPS),
     "brochures": ("INSERT INTO brochures(title,type,file) VALUES(?,?,?)", SEED_BROCHURES),
+    "map_spots": ("INSERT INTO map_spots(kind,num,icon,title,detail,x,y) VALUES(?,?,?,?,?,?,?)", SEED_MAP_SPOTS),
 }
 
 
@@ -444,7 +520,7 @@ def now_ts() -> str:
 # ---------------------------------------------------------------- ถังขยะ (ลบแล้วกู้คืนได้ภายใน 30 วัน)
 SOFT_TABLES = {"herbs": "th", "news": "title", "articles": "title", "workshops": "name",
                "brochures": "title", "activities": "title", "services": "title", "events": "title",
-               "messages": "name"}           # ตาราง → คอลัมน์ที่ใช้เป็นชื่อรายการ
+               "messages": "name", "map_spots": "title"}   # ตาราง → คอลัมน์ที่ใช้เป็นชื่อรายการ
 TRASH_DAYS = 30
 LIVE = "deleted_at IS NULL"
 
@@ -857,7 +933,7 @@ def readiness():
     # 4) ความปลอดภัย
     sec = []
     if password_source() == "default":
-        sec.append({"text": "ยังใช้รหัสแอดมินเริ่มต้น admin1234 — เปลี่ยนด้วย python server/server.py --set-password"})
+        sec.append({"text": "ยังใช้รหัสแอดมินเริ่มต้น admin1234 — เปลี่ยนได้ที่แท็บ ⚙️ ตั้งค่าเว็บไซต์", "tab": "settings"})
     for f in ROOT.iterdir():
         if f.is_file() and f.suffix.lower() in (".txt", ".xlsx", ".csv", ".docx") :
             sec.append({"text": f"มีไฟล์ \"{f.name}\" ในโฟลเดอร์เว็บ — ระบบไม่เปิดให้ดาวน์โหลดแล้ว แต่ควรย้ายไปเก็บที่อื่นก่อนนำเว็บขึ้นโฮสต์"})
@@ -895,9 +971,36 @@ RESOURCES = {
     "activities": {"fields": ["type", "date", "title", "excerpt", "img", "contain", "body"], "required": ["title", "date"]},
     "services": {"fields": ["title", "img", "link", "sort"], "required": ["title"]},
     "events": {"fields": ["kind", "date", "end_date", "title", "detail", "link"], "required": ["title", "date"]},
+    "map_spots": {"fields": ["kind", "num", "icon", "title", "detail", "x", "y"], "required": ["title"]},
 }
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
-ORDER = {"activities": "date DESC, id DESC", "services": "sort, id", "events": "date DESC, id DESC"}
+ORDER = {"activities": "date DESC, id DESC", "services": "sort, id", "events": "date DESC, id DESC",
+         "map_spots": "kind, num, id"}
+
+
+def norm_map_spot(vals: dict) -> dict:
+    """ตรวจข้อมูลจุดบนแผนผังสวน — ตำแหน่ง x, y ต้องเป็นตัวเลข 0–100 (หรือเว้นว่างทั้งคู่ = ไม่มีหมุด)"""
+    if vals["kind"] not in MAP_KINDS:
+        raise ApiError(400, "ประเภทไม่ถูกต้อง")
+    vals["num"] = int(vals["num"]) if vals["num"].isdigit() else 0
+    if vals["kind"] == "group":
+        vals["icon"] = ""
+        if vals["num"] < 1:
+            raise ApiError(400, "กรุณาใส่เลขกลุ่ม")
+    elif vals["icon"] not in MAP_ICONS and not re.fullmatch(r"[A-Za-z0-9ก-๙]", vals["icon"]):
+        raise ApiError(400, "ไอคอนไม่ถูกต้อง — เลือกจากรายการ หรือใส่ตัวอักษร/ตัวเลข 1 ตัว")
+    for k in ("x", "y"):
+        if vals[k]:
+            try:
+                v = float(vals[k])
+            except ValueError:
+                raise ApiError(400, f"ตำแหน่ง {k} ต้องเป็นตัวเลข")
+            if not 0 <= v <= 100:
+                raise ApiError(400, f"ตำแหน่ง {k} ต้องอยู่ระหว่าง 0–100")
+            vals[k] = f"{v:g}"
+    if bool(vals["x"]) != bool(vals["y"]):
+        raise ApiError(400, "ใส่ตำแหน่ง x และ y ให้ครบทั้งคู่ (หรือเว้นว่างทั้งคู่ถ้าไม่ต้องการหมุด)")
+    return vals
 
 
 def get_settings():
@@ -1319,6 +1422,8 @@ class Handler(SimpleHTTPRequestHandler):
                 "activities": rows(f"SELECT * FROM activities WHERE {LIVE} ORDER BY {ORDER['activities']}"),
                 "services": rows(f"SELECT * FROM services WHERE {LIVE} ORDER BY {ORDER['services']}"),
                 "events": rows(f"SELECT * FROM events WHERE {LIVE} ORDER BY date"),
+                "map_spots": rows(f"SELECT id, kind, num, icon, title, detail, x, y FROM map_spots "
+                                  f"WHERE {LIVE} ORDER BY {ORDER['map_spots']}"),
                 "settings": get_settings(),
             }
         if path == "/api/login" and method == "POST":
@@ -1347,7 +1452,7 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/api/contact" and method == "POST":
             return self.contact(self.read_json())
 
-        m = re.fullmatch(r"/api/(news|articles|workshops|brochures|herbs|activities|services|events)(?:/(\d+))?", path)
+        m = re.fullmatch(r"/api/(news|articles|workshops|brochures|herbs|activities|services|events|map_spots)(?:/(\d+))?", path)
         if m and method == "GET":
             name, rid = m.group(1), m.group(2)
             if rid:
@@ -1434,18 +1539,52 @@ class Handler(SimpleHTTPRequestHandler):
             return save_notify(self.read_json())
         if path == "/api/notify/test" and method == "POST":
             return test_notify(str(self.read_json().get("channel", "")))
+        if path == "/api/settings" and method == "GET":
+            return {**get_settings(), "password_source": password_source()}
         if path == "/api/settings" and method == "PUT":
             d = self.read_json()
+            vals = {k: str(d[k]).strip() for k in DEFAULT_SETTINGS if k in d}
+            for k, v in vals.items():
+                if len(v) > 1000:
+                    raise ApiError(400, "ข้อความยาวเกินไป")
+                if k in SITE_URL_KEYS and v and not re.fullmatch(r"https://\S+", v):
+                    raise ApiError(400, "ลิงก์ Facebook / YouTube / LINE ต้องขึ้นต้นด้วย https://")
+                if k == "site_email" and v and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", v):
+                    raise ApiError(400, "รูปแบบอีเมลไม่ถูกต้อง")
             with db() as con:
-                for k in DEFAULT_SETTINGS:
-                    if k in d:
-                        con.execute("INSERT INTO settings(key,value) VALUES(?,?) "
-                                    "ON CONFLICT(key) DO UPDATE SET value=excluded.value", (k, str(d[k])))
+                for k, v in vals.items():
+                    con.execute("INSERT INTO settings(key,value) VALUES(?,?) "
+                                "ON CONFLICT(key) DO UPDATE SET value=excluded.value", (k, v))
             return get_settings()
+        if path == "/api/password" and method == "POST":
+            return self.change_password(self.read_json())
         if path == "/api/logout" and method == "POST":
             end_session(self.bearer())
             return {"ok": True}
         raise ApiError(404, "ไม่พบ API นี้")
+
+    def change_password(self, d):
+        """เปลี่ยนรหัสแอดมินจากหน้าแอดมิน — ต้องใส่รหัสเดิมให้ถูก · เปลี่ยนแล้วทุกคนถูกออกจากระบบ"""
+        if password_source() == "env":
+            raise ApiError(400, "รหัสถูกตั้งไว้ด้วยค่า ADMIN_PASSWORD ของเซิร์ฟเวอร์ — เปลี่ยนจากหน้านี้ไม่ได้")
+        ip = self.client_ip()
+        with GUARD_LOCK:   # ใช้ตัวนับเดียวกับหน้าล็อกอิน กันการเดารหัสเดิมผ่านช่องทางนี้
+            if len(recent(LOGIN_FAILS, ip, LOGIN_WINDOW)) >= LOGIN_MAX:
+                raise ApiError(429, "ใส่รหัสผิดหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่")
+        current, new = str(d.get("current", "")), str(d.get("new", ""))
+        if not check_password(current):
+            time.sleep(0.5)
+            with GUARD_LOCK:
+                recent(LOGIN_FAILS, ip, LOGIN_WINDOW).append(time.time())
+            raise ApiError(400, "รหัสเดิมไม่ถูกต้อง")
+        if len(new) < 8:
+            raise ApiError(400, "รหัสใหม่ต้องยาวอย่างน้อย 8 ตัวอักษร")
+        if new == current:
+            raise ApiError(400, "รหัสใหม่ต้องไม่ซ้ำกับรหัสเดิม")
+        set_password(new)
+        end_all_sessions()   # ทุกคน (รวมถึงคนที่อาจรู้รหัสเก่า) ต้องล็อกอินใหม่
+        LOG.warning("เปลี่ยนรหัสแอดมินจากหน้าแอดมิน (จาก %s)", ip)
+        return {"ok": True}
 
     def crud(self, method, name, rid):
         spec = RESOURCES[name]
@@ -1468,6 +1607,8 @@ class Handler(SimpleHTTPRequestHandler):
                 vals["contain"] = 1 if vals["contain"] in ("1", "true", "on") else 0
             if name == "services":
                 vals["sort"] = int(vals["sort"]) if vals["sort"].lstrip("-").isdigit() else 0
+            if name == "map_spots":
+                norm_map_spot(vals)
             if name == "events":
                 if vals["kind"] not in EVENT_KINDS:
                     raise ApiError(400, "ประเภทไม่ถูกต้อง")
