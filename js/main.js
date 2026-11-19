@@ -285,5 +285,16 @@ async function sharePlant(btn){
   }catch(e){if(e&&e.name!=="AbortError")prompt("คัดลอกลิงก์นี้:",url)}
 }
 
+/* PWA: ให้เว็บใช้ได้ตอนสัญญาณไม่ดี/ไม่มีเน็ต (ดู sw.js) + แถบแจ้งเมื่อออฟไลน์ */
+if("serviceWorker" in navigator&&location.protocol.startsWith("http"))
+  addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));
+function offlineBar(){
+  const b=$("#offlineBar"),c=$("#cookie");if(!b)return;
+  b.hidden=navigator.onLine;
+  b.style.bottom=(c&&!c.hidden?c.offsetHeight+12:16)+"px";   /* อยู่เหนือกล่องคุกกี้ ไม่ทับกัน */
+}
+addEventListener("online",offlineBar);addEventListener("offline",offlineBar);
+document.querySelectorAll("#cookie button").forEach(x=>x.addEventListener("click",offlineBar));offlineBar();
+
 $("#yr").textContent=new Date().getFullYear();
 addEventListener("hashchange",()=>{if(!PATH_MODE)go()});go();

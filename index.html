@@ -9,11 +9,19 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+<!-- PWA: ติดตั้งเว็บเป็นแอป ("เพิ่มลงหน้าจอโฮม") + ใช้ได้ตอนไม่มีเน็ต (sw.js) -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#6f4c9b">
+<link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="สวนสมุนไพร">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="demo">
 <!-- แถบแจ้งเว็บไซต์ทดลอง: ซ่อนอัตโนมัติเมื่อเซิร์ฟเวอร์ตั้ง DEMO_MODE=0 -->
 <div class="demo-bar" id="demoBar" role="note">⚠ <b>เว็บไซต์ทดลอง</b> (ต้นแบบเพื่อการศึกษา) — ไม่ใช่เว็บไซต์ทางการของสวนสมุนไพรฯ หรือ บริษัท ปตท. จำกัด (มหาชน) · ข้อมูลบางส่วนเป็นข้อมูลตัวอย่าง</div>
+<div class="offline-bar" id="offlineBar" role="status" hidden>📴 ไม่มีอินเทอร์เน็ต — กำลังแสดงข้อมูลที่เคยเปิดไว้ในเครื่อง</div>
 <div class="topbar"></div>
 
 <!-- ================= HEADER ================= -->

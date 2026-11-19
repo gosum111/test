@@ -63,7 +63,7 @@ MAX_BODY = 8 * 1024 * 1024                             # รับ request ไ�
 BLOCKED_DIRS = {"server", "deploy", "tests", "ขอข้อมูลจากสวน", ".claude", ".git"}           # ห้ามเสิร์ฟไฟล์ในโฟลเดอร์เหล่านี้
 # เสิร์ฟได้เฉพาะไฟล์หน้าเว็บ — ไฟล์อื่นในโฟลเดอร์ (เช่น .txt, .bat, .db, .xlsx) เปิดผ่านเว็บไม่ได้
 PUBLIC_EXT = {".html", ".css", ".js", ".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg", ".ico",
-              ".pdf", ".woff", ".woff2", ".ttf", ".mp4", ".webm"}
+              ".pdf", ".woff", ".woff2", ".ttf", ".mp4", ".webm", ".webmanifest"}
 
 
 
@@ -1613,6 +1613,7 @@ if __name__ == "__main__":
         sys.exit(0)
 
     mimetypes.add_type("text/javascript", ".js")
+    mimetypes.add_type("application/manifest+json", ".webmanifest")   # PWA (ติดตั้งเว็บเป็นแอปบนมือถือ)
     setup_logging()
     init_db()
     LOG.info("เริ่มเซิร์ฟเวอร์ v%s ที่ %s:%s · ตรวจฐานข้อมูล: %s%s", APP_VERSION, HOST, PORT, check_integrity(),

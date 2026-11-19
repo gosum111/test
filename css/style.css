@@ -18,6 +18,8 @@ h1,h2,h3{font-family:"Prompt",sans-serif;color:var(--purple-ink);line-height:1.2
 /* แถบ "เว็บไซต์ทดลอง" (body.demo) — ดันหัวเว็บลงมาไม่ให้ทับกัน */
 .demo-bar{display:none;position:relative;z-index:110;background:#fff4d6;color:#6b4a00;border-bottom:1px solid #f0d58a;font-size:14px;line-height:1.5;text-align:center;padding:7px 16px}
 body.demo .demo-bar{display:block}
+.offline-bar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:300;max-width:calc(100% - 32px);background:#3b2a52;color:#fff;font-size:15px;line-height:1.5;text-align:center;padding:10px 20px;border-radius:30px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.offline-bar[hidden]{display:none}
 body.demo .topbar{top:var(--demo-h,36px)}
 body.demo header:not(.solid){top:calc(22px + var(--demo-h,36px))}
 body.demo .no-hero .crumb{padding-top:calc(150px + var(--demo-h,36px))}
