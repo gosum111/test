@@ -86,7 +86,7 @@ function plantCard(h){
   const sub = h.province ? `ไม้มงคลประจำจังหวัด${h.province}` : (h.groups || []).slice(0, 2).join(" · ");
   return `<a class="hs-card" href="#/herb/plant/${h.id}">
     <div class="hs-card-img"${h.img ? ` style="background-image:url('${h.img}')"` : ""}>${h.img ? "" : `<span>🌿</span>`}${statusBadge(h.status)}</div>
-    <div class="hs-card-b"><h3>${herbTitle(h)}</h3>${herbTitle(h) !== h.th ? `<small>${h.th}</small>` : ""}${h.sci ? `<i>${h.sci}</i>` : ""}${sub ? `<small>${sub}</small>` : ""}</div>
+    <div class="hs-card-b"><h3>${herbTitleIsSci(h) ? `<i>${herbTitle(h)}</i>` : herbTitle(h)}</h3>${herbTitle(h) !== h.th ? `<small>${h.th}</small>` : ""}${h.sci && !herbTitleIsSci(h) ? `<i>${h.sci}</i>` : ""}${sub ? `<small>${sub}</small>` : ""}</div>
   </a>`;
 }
 
@@ -180,7 +180,7 @@ function hsOpen(h){
   document.getElementById("hsDetail").innerHTML = `
     ${h.img?`<img class="hs-photo" src="${h.img}" alt="${h.th}">${creditLine(h.credit)}`:""}
     <span class="pill">${h.province ? "พันธุ์ไม้มงคลประจำจังหวัด"+h.province : h.groups.join(" · ")}</span>
-    <h2>${herbTitle(h)}</h2>${statusBadge(h.status)}
+    <h2>${herbTitleIsSci(h) ? `<i>${herbTitle(h)}</i>` : herbTitle(h)}</h2>${statusBadge(h.status)}
     <p class="hs-sub">${[herbTitle(h) !== h.th ? h.th : h.en, h.sci ? `<i>${h.sci}</i>` : ""].filter(Boolean).join(" · ")}</p>
     <h3>ลักษณะทั่วไป</h3><p>${h.desc}</p>
     <h3>สรรพคุณ</h3><p>${h.use}</p>

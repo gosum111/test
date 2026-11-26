@@ -22,7 +22,10 @@ const monthName = m => IS_EN ? EN_MONTHS[m] : TH_MONTHS_I18N[m];
 const yearDisp = y => IS_EN ? y : y + 543;
 const TH_MONTHS_I18N = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
 /* ชื่อพืชที่แสดงเป็นหัวข้อ: โหมดอังกฤษใช้ชื่อภาษาอังกฤษชื่อแรก (ถ้ามี) */
-const herbTitle = h => IS_EN && h.en ? String(h.en).split(",")[0].trim() : h.th;
+/* ไม่มีชื่อภาษาอังกฤษ → ใช้ชื่อวิทยาศาสตร์ (สกุล + ชนิด) แทน ผู้อ่านภาษาอังกฤษอ่านออกและค้นต่อได้ */
+const herbSciShort = h => String(h.sci || "").split(/\s+/).slice(0, 2).join(" ");
+const herbTitleIsSci = h => IS_EN && !String(h.en || "").trim() && !!herbSciShort(h);
+const herbTitle = h => IS_EN && String(h.en || "").trim() ? String(h.en).split(",")[0].trim() : herbTitleIsSci(h) ? herbSciShort(h) : h.th;
 
 const I18N_EN = {
   /* ---- ชื่อเว็บ / แถบบน ---- */
