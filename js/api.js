@@ -11,8 +11,12 @@ async function apiLoadPublic(){
     const d = await r.json();
     /* NEWS / ARTICLES เป็น const ใน data.js จึงแทนที่ข้อมูลข้างในแทน */
     /* id = เลขประจำรายการในฐานข้อมูล ใช้ทำลิงก์ถาวร เช่น /news/3 */
-    NEWS.splice(0, NEWS.length, ...d.news.map(n => [n.title, n.type, n.detail, n.img, n.id]));
-    ARTICLES.splice(0, ARTICLES.length, ...d.articles.map(a => ({id:a.id, date:a.date, title:a.title, excerpt:a.excerpt, img:a.img, body:a.body})));
+    /* โหมดอังกฤษ: ใช้ช่อง *_en ถ้าแอดมินใส่ไว้ · ยังไม่มี → ภาษาไทย (thOnly = เนื้อหายังเป็นภาษาไทย ให้แสดงหมายเหตุ) */
+    const en = (r, k) => IS_EN && String(r[k + "_en"] || "").trim() ? r[k + "_en"] : r[k];
+    const thOnly = (r, k) => IS_EN && !String(r[k + "_en"] || "").trim() && !!String(r[k] || "").trim();
+    NEWS.splice(0, NEWS.length, ...d.news.map(n => [en(n, "title"), n.type, en(n, "detail"), n.img, n.id, thOnly(n, "detail")]));
+    ARTICLES.splice(0, ARTICLES.length, ...d.articles.map(a => ({id:a.id, date:a.date, title:en(a, "title"), excerpt:en(a, "excerpt"), img:a.img,
+      body:en(a, "body"), thOnly:thOnly(a, "body")})));
     WORKSHOPS.splice(0, WORKSHOPS.length, ...d.workshops.map(w => ({name:w.name, desc:w.detail, img:w.img})));
     BROCHURES.splice(0, BROCHURES.length, ...d.brochures.map(b => [b.title, b.type, b.file]));
     if(d.herbs){

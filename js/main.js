@@ -154,10 +154,10 @@ function go(){
   if(vm){const r=activityRoute(vm[1]);if(r)ROUTES[p]=r;}
   const am=p.match(/^\/herb\/article\/(\d+)$/), a=am&&byId(ARTICLES,am[1]);
   if(a){ROUTES[p]={t:a.title,c:"บทความสมุนไพร",bg:BG.herb,img:a.img,
-    body:()=>`<article class="prose">${a.date?`<p class="art-date">${a.date}</p>`:""}${a.excerpt?`<p class="art-lead">${a.excerpt}</p>`:""}${richText(a.body)}<p style="margin-top:40px"><a class="btn btn-g" href="#/herb/articles">← กลับไปหน้าบทความ</a></p></article>`};}
+    body:()=>`<article class="prose">${a.date?`<p class="art-date">${a.date}</p>`:""}${a.excerpt?`<p class="art-lead">${a.excerpt}</p>`:""}${a.thOnly?`<p class="en-only-th">This article is currently available in Thai only.</p>`:""}${richText(a.body)}<p style="margin-top:40px"><a class="btn btn-g" href="#/herb/articles">← กลับไปหน้าบทความ</a></p></article>`};}
   const nm=p.match(/^\/news\/(\d+)$/), n=nm&&byId(NEWS,nm[1],x=>x[4]);
   if(n){ROUTES[p]={t:n[0],c:"ข่าวประชาสัมพันธ์",bg:BG.acts,img:n[3],
-    body:()=>`<article class="prose">${n[1]?`<p class="art-date">${n[1]}</p>`:""}${n[2]?richText(n[2]):""}<p style="margin-top:40px"><a class="btn btn-g" href="#/news">← กลับไปหน้าข่าวประชาสัมพันธ์</a></p></article>`};}
+    body:()=>`<article class="prose">${n[1]?`<p class="art-date">${n[1]}</p>`:""}${n[5]?`<p class="en-only-th">This news item is currently available in Thai only.</p>`:""}${n[2]?richText(n[2]):""}<p style="margin-top:40px"><a class="btn btn-g" href="#/news">← กลับไปหน้าข่าวประชาสัมพันธ์</a></p></article>`};}
   const hm=p.match(/^\/herb\/plant\/(\d+)$/), h=hm&&byId(HERB_DB,hm[1]);
   /* หน้าพืช (ปลายทางของป้าย QR ที่ต้นไม้): ไม่มีภาพหัวหน้า → สแกนแล้วเห็นรูปและข้อมูลทันที */
   if(h){ROUTES[p]={t:herbTitle(h),c:"ค้นหาสมุนไพร",noHero:true,body:()=>herbPage(h)};}

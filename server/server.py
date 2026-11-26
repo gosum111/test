@@ -464,10 +464,13 @@ def init_db():
         for col in ("img", "status", "img_credit", "other_names", "verse", "verse_src"):
             if col not in have:
                 con.execute(f"ALTER TABLE herbs ADD COLUMN {col} TEXT NOT NULL DEFAULT ''")
-        have = {r[1] for r in con.execute("PRAGMA table_info(pages)")}
-        for col in ("title_en", "body_en"):   # หน้าเนื้อหาภาษาอังกฤษ (ว่าง = แสดงภาษาไทย)
-            if col not in have:
-                con.execute(f"ALTER TABLE pages ADD COLUMN {col} TEXT NOT NULL DEFAULT ''")
+        # ภาษาอังกฤษของเนื้อหาที่แอดมินพิมพ์ (ว่าง = โหมด EN แสดงภาษาไทย)
+        for table, cols in (("pages", ("title_en", "body_en")), ("news", ("title_en", "detail_en")),
+                            ("articles", ("title_en", "excerpt_en", "body_en"))):
+            have = {r[1] for r in con.execute(f"PRAGMA table_info({table})")}
+            for col in cols:
+                if col not in have:
+                    con.execute(f"ALTER TABLE {table} ADD COLUMN {col} TEXT NOT NULL DEFAULT ''")
         for t in SOFT_TABLES:   # ถังขยะ: deleted_at ว่าง = ใช้งานอยู่, มีค่า = อยู่ในถังขยะ
             if "deleted_at" not in {r[1] for r in con.execute(f"PRAGMA table_info({t})")}:
                 con.execute(f"ALTER TABLE {t} ADD COLUMN deleted_at TEXT")
@@ -966,8 +969,9 @@ def readiness():
 
 # ตารางที่แอดมินแก้ได้ และฟิลด์ที่อนุญาต
 RESOURCES = {
-    "news": {"fields": ["title", "type", "detail", "img"], "required": ["title"]},
-    "articles": {"fields": ["date", "title", "excerpt", "img", "body"], "required": ["title"]},
+    "news": {"fields": ["title", "type", "detail", "img", "title_en", "detail_en"], "required": ["title"]},
+    "articles": {"fields": ["date", "title", "excerpt", "img", "body", "title_en", "excerpt_en", "body_en"],
+                 "required": ["title"]},
     "workshops": {"fields": ["name", "detail", "img"], "required": ["name"]},
     "brochures": {"fields": ["title", "type", "file"], "required": ["title"]},
     "herbs": {"fields": ["th", "en", "sci", "detail", "uses", "groups", "province", "img", "status", "img_credit",
