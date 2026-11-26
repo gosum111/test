@@ -854,11 +854,19 @@ function gardenSignHtml(h, site){
   </div>`;
 }
 
-/* บันทึกที่แก้จากหน้าพิมพ์ป้าย: รวมกับข้อมูลเดิมทั้งหมดของพืช แล้วส่งไปเซิร์ฟเวอร์ (เรียกจากแท็บหน้าพิมพ์) */
-async function saveSignEdit(h, changes){
-  const body = Object.fromEntries(FORMS.herbs.fields.map(([k]) => [k, h[k] ?? ""]));
-  Object.assign(body, changes);
-  const saved = await api(`herbs/${h.id}`, {method:"PUT", body:JSON.stringify(body)});
+/* บันทึกที่แก้จากหน้าพิมพ์ป้าย (เรียกจากแท็บหน้าพิมพ์)
+   orig = ค่าตอนเปิดหน้าพิมพ์ · ดึงข้อมูลล่าสุดของพืชจากเซิร์ฟเวอร์ก่อน แล้วเปลี่ยนเฉพาะช่องที่แก้บนป้าย
+   → ถ้าระหว่างนั้นมีคนแก้ช่องอื่นในฟอร์มหลังบ้าน (รูป สรรพคุณ ฯลฯ) จะไม่ถูกเขียนทับ */
+async function saveSignEdit(orig, changes){
+  const latest = (await api("herbs")).find(x => x.id === orig.id);
+  if(!latest) throw new Error("ไม่พบพืชนี้แล้ว (อาจถูกลบไปถังขยะ)");
+  const body = Object.fromEntries(FORMS.herbs.fields.map(([k]) => [k, latest[k] ?? ""]));
+  ["th", "verse", "verse_src", "other_names", "sci"].forEach(k => {
+    if(k in changes && String(changes[k] ?? "") !== String(orig[k] ?? "")) body[k] = changes[k];
+  });
+  const fam = signFamily(changes.detail);   /* ชื่อวงศ์อยู่ต้น "ลักษณะทั่วไป" → แก้เฉพาะส่วนวงศ์ของข้อความล่าสุด */
+  if("detail" in changes && fam !== signFamily(orig.detail)) body.detail = setFamily(latest.detail, fam);
+  const saved = await api(`herbs/${orig.id}`, {method:"PUT", body:JSON.stringify(body)});
   const i = cache.findIndex(x => x.id === saved.id);
   if(i >= 0 && tab === "herbs"){ cache[i] = saved; render(); }
   return saved;
@@ -917,6 +925,7 @@ function gardenSheet(all, kinds, copies, site, win){
     <script>
       const A = window.opener || (parent !== window ? parent : null), site = ${JSON.stringify(site)};
       const data = ${JSON.stringify(Object.fromEntries(all.map(h => [h.id, h]))).split("<").join("\\" + "u003c")}, order = ${JSON.stringify(all.map(h => h.id))};
+      const orig = JSON.parse(JSON.stringify(data));   /* ค่าตอนเปิด/บันทึกล่าสุด → ส่งเฉพาะช่องที่แก้ ไม่ทับงานที่แก้จากที่อื่น */
       const ed = document.getElementById("ed"), grid = document.getElementById("grid"), msg = document.getElementById("edMsg");
       let cur = null, dirty = new Set();
       const draw = () => { grid.innerHTML = order.map(id => A.gardenSignHtml(data[id], site)).join(""); mark(); };
@@ -931,7 +940,7 @@ function gardenSheet(all, kinds, copies, site, win){
       ed.oninput = () => { Object.assign(data[cur], changes()); dirty.add(cur); msg.textContent = "ยังไม่ได้บันทึก"; msg.className = "msg"; redraw(cur); mark(); };
       ed.onsubmit = async ev => { ev.preventDefault(); if(!ed.reportValidity()) return;
         const id = cur; msg.textContent = "กำลังบันทึก…"; msg.className = "msg";
-        try{ data[id] = await A.saveSignEdit(data[id], changes()); dirty.delete(id); redraw(id); mark();
+        try{ data[id] = await A.saveSignEdit(orig[id], changes()); orig[id] = JSON.parse(JSON.stringify(data[id])); dirty.delete(id); redraw(id); mark();
           const nv = new Set(order.filter(i => !String(data[i].verse || "").trim())).size;
           document.getElementById("nv").textContent = nv ? "· " + nv + " ชนิดยังไม่มีกลอน" : "";
           msg.textContent = "✓ บันทึกแล้ว"; msg.className = "msg ok"; }
@@ -1181,8 +1190,8 @@ function renderSettings(){
         ${inp("site_email", "อีเมล", "info@example.com", "email")}
       </div>
       <label>เวลาทำการ (ขึ้นบรรทัดใหม่ได้)<textarea name="site_hours" rows="3">${esc(c.site_hours)}</textarea></label>
-      <label>ที่อยู่ ภาษาอังกฤษ <span class="hint">(แสดงเมื่อผู้ชมกดปุ่ม EN · เว้นว่าง = แสดงภาษาไทย)</span><textarea name="site_address_en" rows="2">${esc(c.site_address_en)}</textarea></label>
-      <label>เวลาทำการ ภาษาอังกฤษ<textarea name="site_hours_en" rows="3">${esc(c.site_hours_en)}</textarea></label>
+      <label>ที่อยู่ ภาษาอังกฤษ <span class="hint">(แสดงเมื่อผู้ชมกดปุ่ม EN · เว้นว่าง = แสดงภาษาไทย)</span><textarea name="site_address_en" rows="2" placeholder="เช่น 39 Rayong Highway 3191, Nikhom Phatthana District, Rayong 21180, Thailand">${esc(c.site_address_en)}</textarea></label>
+      <label>เวลาทำการ ภาษาอังกฤษ <span class="hint">(ถ้าใส่ไว้ แก้เวลาทำการภาษาไทยเมื่อไรอย่าลืมแก้ช่องนี้ด้วย)</span><textarea name="site_hours_en" rows="3" placeholder="เช่น Herb Garden: Tuesday–Sunday 09:00–16:30 (closed Mondays)">${esc(c.site_hours_en)}</textarea></label>
     </div>
     <div class="nf">
       <h3>🌐 โซเชียลมีเดีย <span class="hint" style="font-weight:400">(เว้นว่าง = ไม่แสดงปุ่ม · ต้องขึ้นต้นด้วย https://)</span></h3>

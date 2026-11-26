@@ -375,8 +375,9 @@ SITE_INFO_DEFAULTS = {
     "site_youtube": "https://www.youtube.com/@pttherbgardenchannel8378",
     "site_line": "",
     "site_map_query": "PTT Herb Garden Rayong",
-    "site_address_en": "39 Rayong Highway 3191, Nikhom Phatthana District, Rayong 21180, Thailand",   # โหมด EN (เว้นว่าง = แสดงภาษาไทย)
-    "site_hours_en": "Herb Garden: Tuesday–Sunday 09:00–16:30 (closed Mondays)\nExercise area: daily 06:00–20:00\nFree admission",
+    # โหมด EN: ที่อยู่/เวลาทำการภาษาอังกฤษ (ว่าง = แปลจากข้อความภาษาไทยปัจจุบัน → แก้ภาษาไทยแล้วไม่ค้างค่าเก่า)
+    "site_address_en": "",
+    "site_hours_en": "",
     "site_show_info": "0",   # หน้าติดต่อเรา: แสดงที่อยู่/โทร/เวลาทำการข้างฟอร์ม (1 = แสดง)
     "site_show_map": "0",    # หน้าติดต่อเรา: แสดงแผนที่ Google Maps (1 = แสดง)
 }

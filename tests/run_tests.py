@@ -307,11 +307,17 @@ def test_browser():
         b.js(f"{{const e={gs}.querySelector('#ed').elements; e.verse.value=['วรรคหนึ่ง','วรรคสอง','วรรคสาม','วรรคสี่'].join(String.fromCharCode(10)); e.family.value='Testaceae';"
              f" e.verse.dispatchEvent(new Event('input',{{bubbles:true}}))}}")
         check("ป้ายแบบสวน: แก้แล้วป้ายเปลี่ยนทันที", b.wait(f"{gs}.querySelector('.sg .vs').textContent.includes('วรรคสาม') && {gs}.querySelector('.sg .info').textContent.includes('TESTACEAE')"))
+        # ระหว่างเปิดหน้าพิมพ์ค้างไว้ มีคนแก้สรรพคุณ/ลักษณะจากฟอร์มหลังบ้าน → บันทึกป้ายต้องไม่ทับของใหม่
+        gid = b.js("cache[0].id")
+        tok = login()
+        h0 = next(x for x in call("/api/herbs?", token=tok)[1] if x["id"] == gid)
+        call(f"/api/herbs/{gid}", {**h0, "uses": "สรรพคุณแก้จากฟอร์ม", "detail": "ลักษณะแก้จากฟอร์ม"}, tok, "PUT")
         b.js(f"{gs}.querySelector('#ed').requestSubmit()")
         b.wait(f"{gs}.querySelector('#edMsg').textContent.includes('บันทึกแล้ว')")
-        gid = b.js("cache[0].id")
-        h = next(x for x in call("/api/herbs?", token=login())[1] if x["id"] == gid)
+        h = next(x for x in call("/api/herbs?", token=tok)[1] if x["id"] == gid)
         check("ป้ายแบบสวน: กดบันทึกแล้วข้อมูลพืชเปลี่ยนจริง", "วรรคสาม" in h["verse"] and h["detail"].startswith("วงศ์ Testaceae ·"), str(h)[:200])
+        check("ป้ายแบบสวน: บันทึกป้ายไม่ทับข้อมูลที่แก้จากที่อื่นระหว่างนั้น",
+              h["uses"] == "สรรพคุณแก้จากฟอร์ม" and h["detail"] == "วงศ์ Testaceae · ลักษณะแก้จากฟอร์ม", str(h)[:200])
         check("แอดมิน: ไม่มี JavaScript error", not js_err(), "; ".join(js_err()))
     finally:
         b.close()
