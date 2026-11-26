@@ -42,10 +42,10 @@ function contactBody(){
  return `<div class="contact${showInfo||showMap?"":" form-only"}">
  ${showInfo||showMap?`<div class="info">
   ${showInfo ? `
-  ${SITE.site_address?`<div class="row"><span class="ic">📍</span><div><b>ที่อยู่</b><p>${nl(SITE.site_address)}</p></div></div>`:""}
+  ${SITE.site_address?`<div class="row"><span class="ic">📍</span><div><b>ที่อยู่</b><p>${nl(siteTxt("site_address"))}</p></div></div>`:""}
   ${sitePhones().length?`<div class="row"><span class="ic">☎</span><div><b>โทรศัพท์</b>${sitePhones().map(telLink).join(", ")}</div></div>`:""}
   ${SITE.site_email?`<div class="row"><span class="ic">✉</span><div><b>อีเมล</b><a href="mailto:${escHtml(SITE.site_email)}">${escHtml(SITE.site_email)}</a></div></div>`:""}
-  ${SITE.site_hours?`<div class="row"><span class="ic">🕘</span><div><b>เวลาทำการ</b><p>${nl(SITE.site_hours)}</p></div></div>`:""}` : ""}
+  ${SITE.site_hours?`<div class="row"><span class="ic">🕘</span><div><b>เวลาทำการ</b><p>${nl(siteTxt("site_hours"))}</p></div></div>`:""}` : ""}
   ${showMap ? `<div class="map"><iframe loading="lazy" title="แผนที่" src="https://maps.google.com/maps?q=${encodeURIComponent(SITE.site_map_query)}&z=13&output=embed"></iframe></div>` : ""}
  </div>`:""}
  <form class="cf" id="cf">
@@ -60,10 +60,12 @@ function contactBody(){
   <p class="ok" id="ok">✓ ส่งข้อความเรียบร้อย เจ้าหน้าที่จะติดต่อกลับโดยเร็ว</p>
   <p class="ok" id="cfErr" style="color:#c0392b"></p>
  </form></div>`}
+/* ที่อยู่/เวลาทำการ: โหมด EN ใช้ฉบับภาษาอังกฤษจากแท็บตั้งค่าเว็บไซต์ (เว้นว่าง = ภาษาไทย) */
+function siteTxt(k){return IS_EN&&String(SITE[k+"_en"]||"").trim()?SITE[k+"_en"]:SITE[k]}
 /* ส่วนท้ายเว็บ: ที่อยู่ โทร อีเมล และปุ่มโซเชียล จากข้อมูลใน SITE */
 function renderSiteInfo(){
   const fc=$("#footContact"),fs=$("#footSocial");
-  if(fc) fc.innerHTML=[escHtml(SITE.site_address).replace(/\n/g,"<br>"),
+  if(fc) fc.innerHTML=[escHtml(siteTxt("site_address")).replace(/\n/g,"<br>"),
     sitePhones().length?"โทร "+sitePhones().map(telLink).join(", "):"",
     SITE.site_email?`<a href="mailto:${escHtml(SITE.site_email)}">${escHtml(SITE.site_email)}</a>`:""].filter(Boolean).join("<br>");
   if(fs) fs.innerHTML=[[SITE.site_facebook,"Facebook","f"],[SITE.site_youtube,"YouTube","▶"],[SITE.site_line,"LINE","L"]]

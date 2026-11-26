@@ -1181,6 +1181,8 @@ function renderSettings(){
         ${inp("site_email", "อีเมล", "info@example.com", "email")}
       </div>
       <label>เวลาทำการ (ขึ้นบรรทัดใหม่ได้)<textarea name="site_hours" rows="3">${esc(c.site_hours)}</textarea></label>
+      <label>ที่อยู่ ภาษาอังกฤษ <span class="hint">(แสดงเมื่อผู้ชมกดปุ่ม EN · เว้นว่าง = แสดงภาษาไทย)</span><textarea name="site_address_en" rows="2">${esc(c.site_address_en)}</textarea></label>
+      <label>เวลาทำการ ภาษาอังกฤษ<textarea name="site_hours_en" rows="3">${esc(c.site_hours_en)}</textarea></label>
     </div>
     <div class="nf">
       <h3>🌐 โซเชียลมีเดีย <span class="hint" style="font-weight:400">(เว้นว่าง = ไม่แสดงปุ่ม · ต้องขึ้นต้นด้วย https://)</span></h3>
