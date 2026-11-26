@@ -467,7 +467,8 @@ def init_db():
         # ภาษาอังกฤษของเนื้อหาที่แอดมินพิมพ์ (ว่าง = โหมด EN แสดงภาษาไทย)
         for table, cols in (("pages", ("title_en", "body_en")), ("news", ("title_en", "detail_en")),
                             ("articles", ("title_en", "excerpt_en", "body_en")),
-                            ("activities", ("title_en", "excerpt_en", "body_en")), ("workshops", ("name_en", "detail_en"))):
+                            ("activities", ("title_en", "excerpt_en", "body_en")), ("workshops", ("name_en", "detail_en")),
+                            ("services", ("title_en",)), ("events", ("title_en", "detail_en"))):
             have = {r[1] for r in con.execute(f"PRAGMA table_info({table})")}
             for col in cols:
                 if col not in have:
@@ -980,8 +981,8 @@ RESOURCES = {
               "required": ["th"]},
     "activities": {"fields": ["type", "date", "title", "excerpt", "img", "contain", "body", "title_en", "excerpt_en", "body_en"],
                    "required": ["title", "date"]},
-    "services": {"fields": ["title", "img", "link", "sort"], "required": ["title"]},
-    "events": {"fields": ["kind", "date", "end_date", "title", "detail", "link"], "required": ["title", "date"]},
+    "services": {"fields": ["title", "img", "link", "sort", "title_en"], "required": ["title"]},
+    "events": {"fields": ["kind", "date", "end_date", "title", "detail", "link", "title_en", "detail_en"], "required": ["title", "date"]},
     "map_spots": {"fields": ["kind", "num", "icon", "title", "detail", "x", "y"], "required": ["title"]},
 }
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")

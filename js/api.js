@@ -42,9 +42,9 @@ async function apiLoadPublic(){
         excerpt:en(a, "excerpt"), img:a.img, contain:!!a.contain, body:en(a, "body"), thOnly:thOnly(a, "body")})));
     }
     /* บริการ (หน้าแรก): ขึ้นบรรทัดใหม่ในชื่อ → <br> */
-    if(d.services) SERVICES.splice(0, SERVICES.length, ...d.services.map(s => ({title:s.title.replace(/\n/g, "<br>"), img:s.img, link:s.link})));
+    if(d.services) SERVICES.splice(0, SERVICES.length, ...d.services.map(s => ({title:en(s, "title").replace(/\n/g, "<br>"), img:s.img, link:s.link})));
     /* ปฏิทิน */
-    if(d.events) CAL_EVENTS.splice(0, CAL_EVENTS.length, ...d.events);
+    if(d.events) CAL_EVENTS.splice(0, CAL_EVENTS.length, ...d.events.map(e => ({...e, title:en(e, "title"), detail:en(e, "detail")})));
     if(d.settings){
       Object.assign(CAL_SETTINGS, d.settings);
       /* ข้อมูลติดต่อ/โซเชียล (แก้ได้จากหน้าแอดมิน) → ส่วนท้ายเว็บ + หน้าติดต่อเรา */
