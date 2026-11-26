@@ -48,13 +48,16 @@ const FORMS = {
     ["th","ชื่อภาษาไทย *","text"],
     ["en","ชื่อภาษาอังกฤษ","text"],
     ["sci","ชื่อวิทยาศาสตร์","text"],
+    ["other_names","ชื่ออื่น (แสดงบนป้ายแบบสวน เช่น ปิ้งสมุทร, ส้วนใหญ่)","text"],
     ["detail","ลักษณะทั่วไป","textarea",null,4],
     ["uses","สรรพคุณ","textarea",null,4],
     ["groups","กลุ่มสมุนไพร (หลายกลุ่มคั่นด้วย , เช่น กลุ่มยาแก้ไข้, กลุ่มยาขับปัสสาวะ)","text"],
     ["status","สถานะการอนุรักษ์","select",[["","ปกติ"], ...CONSERVATION]],
     ["province","พันธุ์ไม้มงคลประจำจังหวัด","province"],
     ["img","รูปภาพ","image"],
-    ["img_credit","เครดิตรูป (ถ้าใช้รูปจากแหล่งอื่น เช่น ชื่อผู้ถ่าย · สัญญาอนุญาต · ลิงก์)","text"]]},
+    ["img_credit","เครดิตรูป (ถ้าใช้รูปจากแหล่งอื่น เช่น ชื่อผู้ถ่าย · สัญญาอนุญาต · ลิงก์)","text"],
+    ["verse","กลอนบนป้ายแบบสวน (1 บรรทัด = 1 วรรค · 4 บรรทัด = 1 บท แสดงเป็น 2 คอลัมน์แบบป้ายจริง)","textarea",null,4],
+    ["verse_src","ที่มาของกลอน (เช่น นิราศเกาะจาน : สุนทรภู่)","text"]]},
   news: {title:"ข่าวสาร", fields:[
     ["title","หัวข้อข่าว *","text"],
     ["type","ประเภท","select",["ข่าวสาร","กิจกรรม","โครงการ"]],
@@ -309,6 +312,11 @@ const PREVIEWS = {
         <div style="width:130px;flex:none">${qr.replace("<svg ", '<svg style="width:100%;height:auto;display:block" ')}</div>
       </div>
     </section>
+    <section style="padding:16px 28px 8px">
+      ${PV_LABEL("ป้ายแบบสวน (เปลี่ยนตามที่พิมพ์ในช่อง กลอน / ที่มาของกลอน / ชื่ออื่น)")}
+      ${SIGN_FONTS}<style>${SIGN_CSS}</style>
+      <div style="zoom:.55">${gardenSignHtml(editing ? {...d, id:editing.id} : d, SITE_URL)}</div>
+    </section>
     <hr style="border:0;border-top:1px dashed #d5cfe0;margin:16px 28px 0">
     <section style="padding:24px 28px">
       ${PV_LABEL("หน้าของพืช (ผู้เข้าชมเห็นเมื่อสแกน QR)")}
@@ -469,9 +477,9 @@ $("#savePrintBtn").onclick = async () => {
     const data = Object.fromEntries(new FormData(f));
     const saved = await api(editing ? `herbs/${editing.id}` : "herbs", {method:editing ? "PUT" : "POST", body:JSON.stringify(data)});
     const copies = Math.min(50, Math.max(1, parseInt($("#qrInlineCopies").value, 10) || 1));
-    const big = document.querySelector('input[name="qrInlineSize"]:checked').value === "l";
+    const size = document.querySelector('input[name="qrInlineSize"]:checked').value;
     w.document.open();
-    openLabelSheet([saved], copies, big, SITE_URL, w);
+    openLabelSheet([saved], copies, size, SITE_URL, w);
     $("#dlg").close(); load();
     toast(`บันทึก "${saved.th}" แล้ว · เปิดหน้าพิมพ์ป้าย QR ${copies} ป้ายในแท็บใหม่`);
   }catch(err){ w.close(); $("#formErr").textContent = err.message; }
@@ -483,7 +491,7 @@ $("#q").oninput = render;
 
 const HERB_COLS = [["th","ชื่อภาษาไทย"],["en","ชื่อภาษาอังกฤษ"],["sci","ชื่อวิทยาศาสตร์"],["detail","ลักษณะทั่วไป"],
                    ["uses","สรรพคุณ"],["groups","กลุ่มสมุนไพร"],["province","จังหวัด (เฉพาะพันธุ์ไม้มงคล)"],["img","รูปภาพ"],
-                   ["status","สถานะการอนุรักษ์"],["img_credit","เครดิตรูป"]];
+                   ["status","สถานะการอนุรักษ์"],["img_credit","เครดิตรูป"],["other_names","ชื่ออื่น"],["verse","กลอน"],["verse_src","ที่มาของกลอน"]];
 
 async function downloadHerbsCsv(){
   const herbs = tab === "herbs" && cache.length ? cache : await api("herbs");
@@ -650,7 +658,7 @@ function qrSiteCheck(){
 const qrCopies = () => Math.min(50, Math.max(1, parseInt($("#qrCopies").value, 10) || 1));
 function qrTotal(){
   const n = qrList()[qrScope()].length, c = qrCopies();
-  $("#qrTotal").textContent = `รวมทั้งหมด ${n * c} ป้าย (${n} ชนิด × ${c}) · ประมาณ ${Math.ceil(n * c / (document.querySelector('#qrDlg input[name="qrSize"]:checked').value === "l" ? 2 : 10))} แผ่น A4`;
+  $("#qrTotal").textContent = `รวมทั้งหมด ${n * c} ป้าย (${n} ชนิด × ${c}) · ประมาณ ${Math.ceil(n * c / (document.querySelector('#qrDlg input[name="qrSize"]:checked').value === "s" ? 10 : 2))} แผ่น A4`;
 }
 document.querySelectorAll('#qrDlg input[name="qrScope"], #qrDlg input[name="qrSize"]').forEach(r => r.addEventListener("change", qrTotal));
 $("#qrBtn").onclick = async () => {
@@ -672,13 +680,16 @@ $("#qrGo").onclick = async () => {
   const list = qrList()[qrScope()];
   if(!list.length){ alert("ไม่มีพืชที่จะพิมพ์ป้าย"); return; }
   try{ await api("notify", {method:"PUT", body:JSON.stringify({site_url:site})}); SITE_URL = site; }catch(e){}   /* จำที่อยู่เว็บไว้ใช้ครั้งหน้า */
-  const big = document.querySelector('#qrDlg input[name="qrSize"]:checked').value === "l";
-  if(openLabelSheet(list, qrCopies(), big, site)) $("#qrDlg").close();
+  const size = document.querySelector('#qrDlg input[name="qrSize"]:checked').value;
+  if(openLabelSheet(list, qrCopies(), size, site)) $("#qrDlg").close();
 };
 
-/* สร้างหน้าพิมพ์ป้าย (ใช้ทั้งหน้าต่าง "พิมพ์ป้าย QR" และปุ่ม 🏷 QR ของแต่ละชนิด) */
-function openLabelSheet(list, copies, big, site, win){
+/* สร้างหน้าพิมพ์ป้าย (ใช้ทั้งหน้าต่าง "พิมพ์ป้าย QR" และปุ่ม 🏷 QR ของแต่ละชนิด)
+   size: "s" มาตรฐาน · "l" ใหญ่ · "g" ป้ายแบบสวน (พื้นเขียว เสาลายไทย กลอน รูปพืช) */
+function openLabelSheet(list, copies, size, site, win){
   const all = list.flatMap(h => Array(copies).fill(h));   /* ป้ายของชนิดเดียวกันอยู่ติดกัน ตัดแล้วแยกกองง่าย */
+  if(size === "g") return gardenSheet(all, list.length, copies, site, win);
+  const big = size === "l";
   const labels = all.map(h => `
     <div class="lb">
       <div class="tx">
@@ -722,6 +733,186 @@ function openLabelSheet(list, copies, big, site, win){
   return true;
 }
 
+/* ---------- ป้ายแบบสวน: เลียนแบบป้ายจริงในสวน (19 × 13 ซม. · 2 ป้าย/A4) ----------
+   พื้นฟ้า-สนาม · เสาลายไทยสีแดงเลือดหมูสองข้าง · แผ่นป้ายสีเขียวขอบทอง หัวโค้ง
+   ชื่อพืชสีทอง · กลอน 2 คอลัมน์ + ที่มา · แถวล่าง: QR, รูปพืช, ชื่ออื่น / ชื่อวิทยาศาสตร์ / ชื่อวงศ์
+   ใช้ที่เดียวกันทั้ง: หน้าพิมพ์ (คลิกป้ายเพื่อแก้แล้วบันทึกได้ทันที) และตัวอย่างในฟอร์มแก้ไขพืช */
+const SIGN_POLE = `<svg viewBox="0 0 40 300" preserveAspectRatio="none"><defs><linearGradient id="pg" x1="0" x2="1">
+  <stop offset="0" stop-color="#5a1a1f"/><stop offset=".45" stop-color="#8e3a3f"/><stop offset="1" stop-color="#5a1a1f"/></linearGradient></defs>
+  <g fill="url(#pg)" stroke="#fff" stroke-width="1.6" stroke-linejoin="round">
+    <path d="M20 2 C23 10 27 14 27 20 L13 20 C13 14 17 10 20 2Z"/>
+    <path d="M11 20 H29 C33 24 34 30 30 34 H10 C6 30 7 24 11 20Z"/>
+    <path d="M9 34 H31 C36 40 36 48 31 52 H9 C4 48 4 40 9 34Z"/>
+    <rect x="12" y="52" width="16" height="196"/>
+    <path d="M9 248 H31 C36 252 36 260 31 266 H9 C4 260 4 252 9 248Z"/>
+    <path d="M10 266 H30 C34 270 33 276 29 280 H11 C7 276 6 270 10 266Z"/>
+    <path d="M13 280 H27 C27 286 23 290 20 298 C17 290 13 286 13 280Z"/>
+  </g></svg>`;
+const SIGN_PANEL = `<svg viewBox="0 0 142 108" preserveAspectRatio="none"><defs>
+  <radialGradient id="gp" cx=".5" cy=".45" r=".7"><stop offset="0" stop-color="#2f5d40"/><stop offset="1" stop-color="#1b3d2a"/></radialGradient></defs>
+  <path d="M0 16 H10 C10 8 30 3.5 71 3 C112 3.5 132 8 132 16 H142 V100 C136 100 134 104 134 108 H8 C8 104 6 100 0 100Z" fill="url(#gp)" stroke="#e9e2c9" stroke-width=".8"/>
+  <g fill="none" stroke="#9fc1a6" stroke-width=".7" opacity=".28">
+    <path d="M96 92 C100 70 118 58 132 40 M110 66 C118 62 126 64 130 70 C122 72 114 72 110 66Z M104 78 C96 72 90 64 92 56 C100 60 104 68 104 78Z M120 50 C124 42 130 38 136 38 C134 46 128 50 120 50Z"/>
+    <path d="M10 70 C20 62 34 60 44 66 M24 63 C26 56 32 52 38 52 C36 58 30 62 24 63Z"/>
+  </g>
+  <path d="M2.5 18.5 H12.4 C12.8 11 32 6.5 71 6 C110 6.5 129.2 11 129.6 18.5 H139.5 V97.8 C134.6 98.2 132 101.6 131.8 105.5 H10.2 C10 101.6 7.4 98.2 2.5 97.8Z" fill="none" stroke="#d8b24c" stroke-width=".45"/></svg>`;
+const SIGN_FLOURISH = `<svg viewBox="0 0 120 12"><g fill="none" stroke="#d8b24c" stroke-width="1.1" stroke-linecap="round">
+  <path d="M6 6 C20 6 30 1 40 4 C46 6 44 10 40 9 M114 6 C100 6 90 1 80 4 C74 6 76 10 80 9"/>
+  <path d="M46 6 H74"/><path d="M60 2 L64 6 L60 10 L56 6Z" fill="#d8b24c"/></g></svg>`;
+const SIGN_RULE = `<svg viewBox="0 0 100 8" preserveAspectRatio="none"><path d="M2 4 H92 M92 4 C96 1 99 2 98 4 C97 6 94 6 92 4" fill="none" stroke="#d8b24c" stroke-width="1.1"/></svg>`;
+const SIGN_FONTS = `<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Pridi:wght@500;600&display=swap" rel="stylesheet">`;
+const SIGN_CSS = `
+  .sg{position:relative;width:190mm;height:130mm;border-radius:2mm;overflow:hidden;break-inside:avoid;page-break-inside:avoid;font-family:"IBM Plex Sans Thai",sans-serif;
+    background:linear-gradient(180deg,#bcd6e6 0%,#dde9ee 30%,#e8efe6 55%,#a7c48f 80%,#7fa36a 100%);border:.3mm solid #c9c9c9;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sg *{box-sizing:border-box;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sg:before{content:"";position:absolute;left:0;right:0;bottom:0;height:22mm;
+    background:radial-gradient(ellipse 18mm 5mm at 25% 60%,#6f9a54 60%,transparent 62%),radial-gradient(ellipse 18mm 5mm at 50% 70%,#7aa65e 60%,transparent 62%),radial-gradient(ellipse 18mm 5mm at 75% 60%,#6f9a54 60%,transparent 62%);opacity:.7}
+  .sg .pole{position:absolute;top:4mm;width:15mm;height:122mm;z-index:2}
+  .sg .pole.l{left:6mm}.sg .pole.r{right:6mm}
+  .sg .pole svg,.sg .pn>svg{width:100%;height:100%;display:block}
+  .sg .pn{position:absolute;left:19mm;right:19mm;top:9mm;bottom:12mm}
+  .sg .pn>svg{position:absolute;inset:0}
+  .sg .in{position:absolute;inset:4mm 9mm 3.5mm;display:flex;flex-direction:column;align-items:center;color:#f2e9cc}
+  .sg .orn{color:#e6c3e8;font-size:9pt;line-height:1;margin-top:.5mm}
+  .sg .ti{font-family:"Pridi",serif;font-weight:500;color:#e8c55e;line-height:1.25;text-align:center;letter-spacing:.3pt;margin-top:1mm}
+  .sg .fl{width:30mm;height:3mm;margin:.5mm 0 2.5mm}.sg .fl svg{width:100%;height:100%;display:block}
+  .sg .vs{display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:1.5mm 5mm;font-size:11pt;line-height:1.45;width:100%;padding:0 2mm;margin-top:auto;white-space:nowrap}
+  .sg .vs.one{grid-template-columns:1fr;text-align:center;white-space:normal}
+  .sg .vs.long{white-space:normal;font-size:10pt}
+  .sg .vs.none{flex:1}
+  .sg .src{display:flex;align-items:center;gap:3mm;width:100%;font-size:7.5pt;color:#e9e2c9;margin-top:2.5mm}
+  .sg .src i{flex:1;height:2.4mm}.sg .src i svg{width:100%;height:100%;display:block}.sg .src i.flip{transform:scaleX(-1)}
+  .sg .bt{margin-top:auto;display:flex;gap:3mm;align-items:center;width:100%;padding:0 2mm}
+  .sg .sq{width:29mm;flex:none;background:#fff;padding:1.2mm;border:.3mm solid #ddd}
+  .sg .sq svg{width:100%;height:auto;display:block}
+  .sg .sq .wait{aspect-ratio:1;display:grid;place-items:center;text-align:center;font-size:8pt;color:#888}
+  .sg .ph{width:29mm;height:29mm;flex:none;border:.5mm solid #e9e2c9;overflow:hidden;background:#244a33}
+  .sg .ph img{width:100%;height:100%;object-fit:cover;display:block}
+  .sg .info{flex:1;min-width:0;display:grid;grid-template-columns:auto auto 1fr;gap:1mm 2.5mm;font-size:10pt;padding-left:2mm}
+  .sg .info .v{overflow-wrap:anywhere}`;
+
+/* ชื่อวงศ์เก็บอยู่ต้นช่อง "ลักษณะทั่วไป" แบบ "วงศ์ XXX · …" (หน้าพืชบนเว็บอ่านจากตรงนี้ด้วย) */
+const FAMILY_RE = /^วงศ์\s+([^·]+?)\s*·\s*/;
+function signFamily(detail){ const m = String(detail || "").match(FAMILY_RE); return m ? m[1].trim() : ""; }
+function setFamily(detail, fam){ const rest = String(detail || "").replace(FAMILY_RE, ""); fam = fam.trim(); return fam ? `วงศ์ ${fam} · ${rest}` : rest; }
+
+function gardenSignHtml(h, site){
+  const abs = u => { try{ return new URL(u, location.href).href; }catch(e){ return ""; } };   /* หน้าพิมพ์เป็น about:blank → ต้องใช้ลิงก์เต็ม */
+  const family = signFamily(h.detail);
+  const lines = String(h.verse || "").split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  const verse = lines.map((l, i) => `<span>${i === 0 ? "“" : ""}${esc(l)}${i === lines.length - 1 ? "”" : ""}</span>`).join("");
+  const th = h.th || "(ชื่อพืช)", n = [...th].length, fs = n <= 10 ? 34 : n <= 16 ? 28 : n <= 24 ? 22 : 17;
+  const rows = [["ชื่ออื่น", esc(h.other_names || h.en || "")], ["ชื่อวิทยาศาสตร์", h.sci ? `<i>${esc(h.sci)}</i>` : ""], ["ชื่อวงศ์", esc(family.toUpperCase())]]
+    .filter(r => r[1]).map(([k, v]) => `<div class="k">${k}</div><div>:</div><div class="v">${v}</div>`).join("");
+  return `<div class="sg" data-id="${h.id || ""}">
+    <div class="pole l">${SIGN_POLE}</div><div class="pole r">${SIGN_POLE}</div>
+    <div class="pn">${SIGN_PANEL}
+      <div class="in">
+        <div class="orn">❀</div>
+        <div class="ti" style="font-size:${fs}pt">${esc(th)}</div>
+        <div class="fl">${SIGN_FLOURISH}</div>
+        ${lines.length ? `<div class="vs ${lines.length === 1 ? "one" : lines.some(l => [...l].length > 34) ? "long" : ""}">${verse}</div>` : `<div class="vs none"></div>`}
+        ${h.verse_src ? `<div class="src"><i>${SIGN_RULE}</i><span>${esc(h.verse_src)}</span><i class="flip">${SIGN_RULE}</i></div>` : ""}
+        <div class="bt">
+          <div class="sq">${h.id ? qrSvg(qrUrl(site, h.id), th) : `<div class="wait">QR สร้างอัตโนมัติ<br>เมื่อกดบันทึก</div>`}</div>
+          ${h.img ? `<div class="ph"><img src="${esc(abs(h.img))}" alt=""></div>` : ""}
+          <div class="info">${rows}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* บันทึกที่แก้จากหน้าพิมพ์ป้าย: รวมกับข้อมูลเดิมทั้งหมดของพืช แล้วส่งไปเซิร์ฟเวอร์ (เรียกจากแท็บหน้าพิมพ์) */
+async function saveSignEdit(h, changes){
+  const body = Object.fromEntries(FORMS.herbs.fields.map(([k]) => [k, h[k] ?? ""]));
+  Object.assign(body, changes);
+  const saved = await api(`herbs/${h.id}`, {method:"PUT", body:JSON.stringify(body)});
+  const i = cache.findIndex(x => x.id === saved.id);
+  if(i >= 0 && tab === "herbs"){ cache[i] = saved; render(); }
+  return saved;
+}
+
+function gardenSheet(all, kinds, copies, site, win){
+  const w = win || window.open("", "_blank");
+  if(!w){ alert("เบราว์เซอร์บล็อกหน้าต่างใหม่ — กรุณาอนุญาตป๊อปอัปสำหรับหน้านี้"); return false; }
+  const noVerse = new Set(all.filter(h => !String(h.verse || "").trim()).map(h => h.id)).size;
+  w.document.write(`<!doctype html><html lang="th"><head><meta charset="utf-8"><title>ป้ายแบบสวน ${all.length} ป้าย</title>
+    ${SIGN_FONTS}
+    <style>
+      @page{size:A4;margin:8mm}
+      *{box-sizing:border-box}
+      body{margin:0;font-family:"IBM Plex Sans Thai",sans-serif;color:#1d1a24;background:#eee}
+      .bar{position:sticky;top:0;z-index:5;padding:10px 16px;background:#f2edf8;display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;font-size:14px;box-shadow:0 1px 4px #0002}
+      .bar button,.ed button{font:inherit;padding:8px 18px;border:0;border-radius:8px;background:#6f4c9b;color:#fff;cursor:pointer}
+      .bar .tip{background:#fff3c4;padding:3px 10px;border-radius:6px}
+      .bar .warn{color:#9a5b00}
+      .grid{display:grid;grid-template-columns:190mm;gap:4mm;justify-content:center;padding:4mm 0}
+      .grid .sg{cursor:pointer;transition:box-shadow .15s}
+      .grid .sg:hover{box-shadow:0 0 0 1.2mm #6f4c9b88}
+      .grid .sg.on{box-shadow:0 0 0 1.2mm #6f4c9b}
+      ${SIGN_CSS}
+      .ed{position:fixed;top:0;right:0;bottom:0;width:min(360px,100%);background:#fff;box-shadow:-4px 0 16px #0003;z-index:9;padding:16px 18px;overflow:auto;display:none;font-size:14px}
+      .ed.open{display:block}
+      @media (min-width:1100px){body.editing .grid{padding-right:370px}}
+      .ed h3{margin:0 0 4px;font-size:18px;color:#6f4c9b}
+      .ed label{display:block;margin:10px 0 0;font-weight:600}
+      .ed .h{font-weight:400;color:#777;font-size:12px}
+      .ed input,.ed textarea{display:block;width:100%;margin-top:4px;font:inherit;padding:7px 9px;border:1px solid #cfc8db;border-radius:8px}
+      .ed textarea{min-height:120px;line-height:1.6}
+      .ed .row{display:flex;gap:8px;margin-top:16px;align-items:center;flex-wrap:wrap}
+      .ed .ghost{background:#eee;color:#333}
+      .ed .msg{font-size:13px;margin-top:8px}
+      .ed .msg.ok{color:#2d7a2d}.ed .msg.err{color:#b3261e}
+      @media print{body{background:#fff}.bar,.ed{display:none!important}.grid .sg{box-shadow:none!important}}
+    </style></head><body>
+    <div class="bar"><b>${all.length} ป้ายแบบสวน</b>${copies > 1 ? ` (${kinds} ชนิด × ${copies})` : ""} · 19 × 13 ซม. · 2 ป้าย/A4
+      <span class="tip">✏️ คลิกที่ป้ายเพื่อแก้ข้อความ</span>
+      <span class="warn" id="nv">${noVerse ? `· ${noVerse} ชนิดยังไม่มีกลอน` : ""}</span>
+      · ตั้งค่าพิมพ์ให้ติ๊ก "กราฟิกพื้นหลัง" <button onclick="print()">🖨 พิมพ์</button></div>
+    <div class="grid" id="grid"></div>
+    <form class="ed" id="ed" autocomplete="off">
+      <h3>แก้ข้อความบนป้าย</h3>
+      <div class="h">พิมพ์แล้วป้ายเปลี่ยนตามทันที · กด "บันทึก" เพื่อเก็บลงข้อมูลพืช (หน้าเว็บของพืชเปลี่ยนตามด้วย)</div>
+      <label>ชื่อพืช<input name="th" required></label>
+      <label>กลอน <span class="h">1 บรรทัด = 1 วรรค · 4 บรรทัด = 1 บท</span><textarea name="verse" placeholder="วรรคที่ 1&#10;วรรคที่ 2&#10;วรรคที่ 3&#10;วรรคที่ 4"></textarea></label>
+      <label>ที่มาของกลอน <span class="h">เช่น นิราศเกาะจาน : สุนทรภู่</span><input name="verse_src"></label>
+      <label>ชื่ออื่น <span class="h">ว่างไว้ = ใช้ชื่อภาษาอังกฤษ</span><input name="other_names"></label>
+      <label>ชื่อวิทยาศาสตร์<input name="sci"></label>
+      <label>ชื่อวงศ์ <span class="h">เช่น Magnoliaceae</span><input name="family"></label>
+      <div class="row"><button type="submit">💾 บันทึก</button><button type="button" class="ghost" id="edClose">ปิด</button></div>
+      <div class="msg" id="edMsg"></div>
+    </form>
+    <script>
+      const A = window.opener || (parent !== window ? parent : null), site = ${JSON.stringify(site)};
+      const data = ${JSON.stringify(Object.fromEntries(all.map(h => [h.id, h]))).split("<").join("\\" + "u003c")}, order = ${JSON.stringify(all.map(h => h.id))};
+      const ed = document.getElementById("ed"), grid = document.getElementById("grid"), msg = document.getElementById("edMsg");
+      let cur = null, dirty = new Set();
+      const draw = () => { grid.innerHTML = order.map(id => A.gardenSignHtml(data[id], site)).join(""); mark(); };
+      const mark = () => grid.querySelectorAll(".sg").forEach(s => s.classList.toggle("on", cur != null && s.dataset.id == cur));
+      const redraw = id => { grid.querySelectorAll('.sg[data-id="' + id + '"]').forEach(s => { s.outerHTML = A.gardenSignHtml(data[id], site); }); mark(); };
+      const fill = h => { ["th","verse","verse_src","other_names","sci"].forEach(k => ed.elements[k].value = h[k] || ""); ed.elements.family.value = A.signFamily(h.detail); };
+      const changes = () => { const e = ed.elements; return {th:e.th.value.trim(), verse:e.verse.value, verse_src:e.verse_src.value.trim(),
+        other_names:e.other_names.value.trim(), sci:e.sci.value.trim(), detail:A.setFamily(data[cur].detail, e.family.value)}; };
+      grid.onclick = ev => { const s = ev.target.closest(".sg"); if(!s) return;
+        if(!A || A.closed){ alert("ปิดหน้าแอดมินไปแล้ว — เปิดหน้าพิมพ์ป้ายใหม่จากหน้าแอดมินเพื่อแก้ไข"); return; }
+        cur = s.dataset.id; fill(data[cur]); msg.textContent = dirty.has(cur) ? "ยังไม่ได้บันทึก" : ""; msg.className = "msg"; ed.classList.add("open"); document.body.classList.add("editing"); mark(); ed.elements.verse.focus(); };
+      ed.oninput = () => { Object.assign(data[cur], changes()); dirty.add(cur); msg.textContent = "ยังไม่ได้บันทึก"; msg.className = "msg"; redraw(cur); mark(); };
+      ed.onsubmit = async ev => { ev.preventDefault(); if(!ed.reportValidity()) return;
+        const id = cur; msg.textContent = "กำลังบันทึก…"; msg.className = "msg";
+        try{ data[id] = await A.saveSignEdit(data[id], changes()); dirty.delete(id); redraw(id); mark();
+          const nv = new Set(order.filter(i => !String(data[i].verse || "").trim())).size;
+          document.getElementById("nv").textContent = nv ? "· " + nv + " ชนิดยังไม่มีกลอน" : "";
+          msg.textContent = "✓ บันทึกแล้ว"; msg.className = "msg ok"; }
+        catch(e){ msg.textContent = "บันทึกไม่ได้: " + (e.message || e); msg.className = "msg err"; } };
+      document.getElementById("edClose").onclick = () => { ed.classList.remove("open"); document.body.classList.remove("editing"); cur = null; mark(); };
+      addEventListener("beforeunload", e => { if(dirty.size){ e.preventDefault(); e.returnValue = ""; } });
+      draw();
+    <\/script></body></html>`);
+  w.document.close();
+  return true;
+}
+
 /* ---------- QR ของพืชชนิดเดียว: หลังเพิ่มพืชใหม่ (เปิดให้อัตโนมัติ) และปุ่ม 🏷 QR ในรายการ ---------- */
 let qrOneHerb = null;
 async function openQrOne(h, isNew){
@@ -744,8 +935,8 @@ async function openQrOne(h, isNew){
 $("#q1Close").onclick = () => $("#qrOneDlg").close();
 $("#q1Print").onclick = () => {
   const d = $("#qrOneDlg"), copies = Math.min(50, Math.max(1, parseInt($("#q1Copies").value, 10) || 1));
-  const big = d.querySelector('input[name="q1Size"]:checked').value === "l";
-  if(openLabelSheet([qrOneHerb], copies, big, d.dataset.site)) d.close();
+  const size = d.querySelector('input[name="q1Size"]:checked').value;
+  if(openLabelSheet([qrOneHerb], copies, size, d.dataset.site)) d.close();
 };
 /* ดาวน์โหลดรูป QR (PNG) พร้อมชื่อพืชใต้ QR — ใช้ส่งร้านทำป้ายแบบอื่น เช่น อะคริลิก/สติกเกอร์ใหญ่ */
 $("#q1Png").onclick = async () => {

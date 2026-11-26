@@ -227,6 +227,7 @@ label.btn{display:inline-block;margin:0;font-size:15px}
           <label>จำนวนป้าย <input type="number" id="qrInlineCopies" min="1" max="50" value="1"></label>
           <label><input type="radio" name="qrInlineSize" value="s" checked> มาตรฐาน</label>
           <label><input type="radio" name="qrInlineSize" value="l"> ใหญ่</label>
+          <label><input type="radio" name="qrInlineSize" value="g"> แบบป้ายสวน</label>
           <button type="button" class="btn" id="savePrintBtn">บันทึก + พิมพ์ป้าย QR</button>
         </div>
         <div class="foot-btns">
@@ -309,6 +310,7 @@ label.btn{display:inline-block;margin:0;font-size:15px}
       <b>ขนาดป้าย</b>
       <label><input type="radio" name="qrSize" value="s" checked> มาตรฐาน 9 × 5.2 ซม. (10 ป้าย/A4) — ปักหรือแขวนที่ต้นไม้</label>
       <label><input type="radio" name="qrSize" value="l"> ใหญ่ 19 × 13 ซม. (2 ป้าย/A4) — ป้ายตั้งหน้าแปลง/ต้นไม้ใหญ่</label>
+      <label><input type="radio" name="qrSize" value="g"> ป้ายแบบสวน 19 × 13 ซม. (2 ป้าย/A4) — พื้นเขียวขอบทอง เสาลายไทย มีกลอน รูปพืช ชื่ออื่น/ชื่อวงศ์ เหมือนป้ายจริงในสวน</label>
     </div>
     <p class="hint">แนะนำ: พิมพ์บนกระดาษสติกเกอร์กันน้ำ หรือเคลือบพลาสติกก่อนติดกลางแจ้ง · ลองสแกนป้ายแรกด้วยมือถือก่อนพิมพ์ทั้งหมด</p>
     <div class="foot"><button type="button" class="btn ghost" id="qrCancel">ปิด</button><button type="button" class="btn" id="qrGo">เปิดหน้าพิมพ์ป้าย</button></div>
@@ -329,6 +331,7 @@ label.btn{display:inline-block;margin:0;font-size:15px}
         <div class="imp-mode" style="margin:0">
           <label><input type="radio" name="q1Size" value="s" checked> มาตรฐาน 9 × 5.2 ซม.</label>
           <label><input type="radio" name="q1Size" value="l"> ใหญ่ 19 × 13 ซม.</label>
+          <label><input type="radio" name="q1Size" value="g"> ป้ายแบบสวน 19 × 13 ซม.</label>
         </div>
       </div>
     </div>

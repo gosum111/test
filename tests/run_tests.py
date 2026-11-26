@@ -295,6 +295,23 @@ def test_browser():
         b.js("document.querySelector('#list [data-qr]').click()")
         check("ปุ่ม 🏷 QR ในรายการพืชเปิดหน้าต่างป้าย", b.wait("document.querySelector('#qrOneDlg').open"))
         b.js("document.querySelector('#q1Close').click()")
+        # ป้ายแบบสวน: แสดงตัวอย่างในฟอร์ม + คลิกป้ายในหน้าพิมพ์ แก้กลอน/วงศ์ แล้วบันทึกลงข้อมูลพืช
+        b.js("document.querySelector('#list [data-edit]').click()")
+        check("ฟอร์มแก้ไขพืช: มีตัวอย่างป้ายแบบสวน", b.wait("(document.querySelector('#pvFrame').srcdoc||'').includes('class=\x22sg')"))
+        b.js("document.querySelector('#dlg').close()")
+        b.js("{const f=document.createElement('iframe'); f.id='gsT'; f.style.cssText='width:900px;height:700px'; document.body.appendChild(f);"
+             " gardenSheet([cache[0]], 1, 1, location.origin, f.contentWindow)}")
+        gs = "document.querySelector('#gsT').contentDocument"
+        check("ป้ายแบบสวน: หน้าพิมพ์แสดงป้ายพร้อม QR", b.wait(f"{gs}.querySelector('.sg .sq svg')"))
+        b.js(f"{gs}.querySelector('.sg').click()")
+        b.js(f"{{const e={gs}.querySelector('#ed').elements; e.verse.value=['วรรคหนึ่ง','วรรคสอง','วรรคสาม','วรรคสี่'].join(String.fromCharCode(10)); e.family.value='Testaceae';"
+             f" e.verse.dispatchEvent(new Event('input',{{bubbles:true}}))}}")
+        check("ป้ายแบบสวน: แก้แล้วป้ายเปลี่ยนทันที", b.wait(f"{gs}.querySelector('.sg .vs').textContent.includes('วรรคสาม') && {gs}.querySelector('.sg .info').textContent.includes('TESTACEAE')"))
+        b.js(f"{gs}.querySelector('#ed').requestSubmit()")
+        b.wait(f"{gs}.querySelector('#edMsg').textContent.includes('บันทึกแล้ว')")
+        gid = b.js("cache[0].id")
+        h = next(x for x in call("/api/herbs?", token=login())[1] if x["id"] == gid)
+        check("ป้ายแบบสวน: กดบันทึกแล้วข้อมูลพืชเปลี่ยนจริง", "วรรคสาม" in h["verse"] and h["detail"].startswith("วงศ์ Testaceae ·"), str(h)[:200])
         check("แอดมิน: ไม่มี JavaScript error", not js_err(), "; ".join(js_err()))
     finally:
         b.close()

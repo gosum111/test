@@ -461,7 +461,7 @@ def init_db():
                 con.executemany(sql, data)
         # อัปเกรดฐานข้อมูลเก่า: เพิ่มคอลัมน์ที่มาทีหลัง
         have = {r[1] for r in con.execute("PRAGMA table_info(herbs)")}
-        for col in ("img", "status", "img_credit"):
+        for col in ("img", "status", "img_credit", "other_names", "verse", "verse_src"):
             if col not in have:
                 con.execute(f"ALTER TABLE herbs ADD COLUMN {col} TEXT NOT NULL DEFAULT ''")
         for t in SOFT_TABLES:   # ถังขยะ: deleted_at ว่าง = ใช้งานอยู่, มีค่า = อยู่ในถังขยะ
@@ -966,7 +966,8 @@ RESOURCES = {
     "articles": {"fields": ["date", "title", "excerpt", "img", "body"], "required": ["title"]},
     "workshops": {"fields": ["name", "detail", "img"], "required": ["name"]},
     "brochures": {"fields": ["title", "type", "file"], "required": ["title"]},
-    "herbs": {"fields": ["th", "en", "sci", "detail", "uses", "groups", "province", "img", "status", "img_credit"],
+    "herbs": {"fields": ["th", "en", "sci", "detail", "uses", "groups", "province", "img", "status", "img_credit",
+                         "other_names", "verse", "verse_src"],
               "required": ["th"]},
     "activities": {"fields": ["type", "date", "title", "excerpt", "img", "contain", "body"], "required": ["title", "date"]},
     "services": {"fields": ["title", "img", "link", "sort"], "required": ["title"]},
@@ -1047,6 +1048,9 @@ HERB_COLUMNS = {   # ชื่อหัวคอลัมน์ที่ยอ�
     "img": ["รูปภาพ", "รูป", "img", "image"],
     "status": ["สถานะการอนุรักษ์", "สถานะ", "status"],
     "img_credit": ["เครดิตรูป", "เครดิตภาพ", "ที่มาของรูป", "img_credit"],
+    "other_names": ["ชื่ออื่น", "ชื่อเรียกอื่น", "other_names"],
+    "verse": ["กลอน", "บทกลอน", "กลอนบนป้าย", "verse"],
+    "verse_src": ["ที่มาของกลอน", "ที่มากลอน", "verse_src"],
 }
 
 
@@ -1129,6 +1133,9 @@ FUZZY_HEADERS = [
     ("detail", ["ลักษณะ", "รายละเอียด", "description"]),
     ("province", ["จังหวัด", "province"]),
     ("img_credit", ["เครดิต", "credit", "ที่มาของรูป"]),
+    ("verse_src", ["ที่มาของกลอน", "ที่มากลอน"]),
+    ("verse", ["กลอน", "verse", "poem"]),
+    ("other_names", ["ชื่ออื่น", "ชื่อเรียกอื่น"]),
     ("img", ["รูป", "image", "photo"]),
     ("status", ["อนุรักษ์", "สถานะ", "สูญพันธุ์", "หายาก", "status"]),
     ("groups", ["กลุ่ม", "หมวด", "ประเภท", "group", "category"]),
