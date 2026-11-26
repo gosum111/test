@@ -461,7 +461,7 @@ def init_db():
                 con.executemany(sql, data)
         # อัปเกรดฐานข้อมูลเก่า: เพิ่มคอลัมน์ที่มาทีหลัง
         have = {r[1] for r in con.execute("PRAGMA table_info(herbs)")}
-        for col in ("img", "status", "img_credit", "other_names", "verse", "verse_src"):
+        for col in ("img", "status", "img_credit", "other_names", "verse", "verse_src", "detail_en", "uses_en"):
             if col not in have:
                 con.execute(f"ALTER TABLE herbs ADD COLUMN {col} TEXT NOT NULL DEFAULT ''")
         # ภาษาอังกฤษของเนื้อหาที่แอดมินพิมพ์ (ว่าง = โหมด EN แสดงภาษาไทย)
@@ -975,7 +975,7 @@ RESOURCES = {
     "workshops": {"fields": ["name", "detail", "img"], "required": ["name"]},
     "brochures": {"fields": ["title", "type", "file"], "required": ["title"]},
     "herbs": {"fields": ["th", "en", "sci", "detail", "uses", "groups", "province", "img", "status", "img_credit",
-                         "other_names", "verse", "verse_src"],
+                         "other_names", "verse", "verse_src", "detail_en", "uses_en"],
               "required": ["th"]},
     "activities": {"fields": ["type", "date", "title", "excerpt", "img", "contain", "body"], "required": ["title", "date"]},
     "services": {"fields": ["title", "img", "link", "sort"], "required": ["title"]},
@@ -1059,6 +1059,8 @@ HERB_COLUMNS = {   # ชื่อหัวคอลัมน์ที่ยอ�
     "other_names": ["ชื่ออื่น", "ชื่อเรียกอื่น", "other_names"],
     "verse": ["กลอน", "บทกลอน", "กลอนบนป้าย", "verse"],
     "verse_src": ["ที่มาของกลอน", "ที่มากลอน", "verse_src"],
+    "detail_en": ["ลักษณะทั่วไป ภาษาอังกฤษ", "ลักษณะทั่วไป อังกฤษ", "detail_en"],
+    "uses_en": ["สรรพคุณ ภาษาอังกฤษ", "สรรพคุณ อังกฤษ", "uses_en"],
 }
 
 

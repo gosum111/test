@@ -263,7 +263,7 @@ NEWS.forEach((n,i)=>{if(n[4]==null)n[4]=i+1});
 /* หน้าเต็มของพืชแต่ละชนิด (แชร์ลิงก์ได้) */
 function herbPage(h){
   /* "วงศ์ FABACEAE · ไม้ยืนต้น..." → แยกวงศ์ออกมาไว้ในกล่องข้อมูลสรุป */
-  const fm=(h.desc||"").match(/^วงศ์\s+([^·]+?)\s*·\s*/), family=fm?fm[1]:"", desc=fm?h.desc.slice(fm[0].length):(h.desc||"");
+  const fm=(h.desc||"").match(/^(?:วงศ์|Family)\s+([^·]+?)\s*·\s*/), family=fm?fm[1]:"", desc=fm?h.desc.slice(fm[0].length):(h.desc||"");
   const row=(k,v)=>v?`<div><dt>${k}</dt><dd>${v}</dd></div>`:"";
   /* พืชในกลุ่มเดียวกัน (หรือภาคเดียวกันสำหรับพันธุ์ไม้มงคล) */
   const g=(h.groups||[])[0];
@@ -282,7 +282,7 @@ function herbPage(h){
         ${row("สถานะการอนุรักษ์",h.status?statusBadge(h.status):"")}
       </dl>
     </div>
-    ${IS_EN?`<p class="note" style="margin-top:24px">Detailed descriptions are currently available in Thai only.</p>`:""}
+    ${h.thOnly?`<p class="note" style="margin-top:24px">Detailed descriptions are currently available in Thai only.</p>`:""}
     <section class="plant-sec"><h2>ลักษณะทั่วไป</h2><p>${desc||"-"}</p></section>
     <section class="plant-sec"><h2>สรรพคุณและการใช้ประโยชน์</h2><p>${h.use||"-"}</p>
       <p class="hs-warn">* ข้อมูลตามภูมิปัญญาการแพทย์แผนไทย ไม่ใช่คำแนะนำทางการแพทย์ ควรปรึกษาแพทย์หรือเภสัชกรก่อนใช้</p></section>

@@ -22,7 +22,11 @@ async function apiLoadPublic(){
     if(d.herbs){
       HERB_DB.splice(0, HERB_DB.length, ...d.herbs.map(h => {
         const groups = h.groups ? h.groups.split(",").map(s => s.trim()).filter(Boolean) : [];
-        return {id:h.id, th:h.th, en:h.en, sci:h.sci, desc:h.detail, use:h.uses, groups, img:h.img || "", credit:h.img_credit || "", status:h.status || "",
+        /* โหมดอังกฤษ: ลักษณะ/สรรพคุณภาษาอังกฤษ (วงศ์ใช้จากข้อมูลภาษาไทย) · ยังไม่มี → ภาษาไทย + หมายเหตุ */
+        const fam = (String(h.detail || "").match(/^วงศ์\s+([^·]+?)\s*·\s*/) || [])[1];
+        const dEn = IS_EN && String(h.detail_en || "").trim(), uEn = IS_EN && String(h.uses_en || "").trim();
+        return {id:h.id, th:h.th, en:h.en, sci:h.sci, desc:dEn ? (fam ? `Family ${fam} · ` : "") + h.detail_en : h.detail,
+                use:uEn ? h.uses_en : h.uses, thOnly:IS_EN && !dEn && !uEn, groups, img:h.img || "", credit:h.img_credit || "", status:h.status || "",
                 /* พันธุ์ไม้มงคลที่เป็นสมุนไพรด้วย (มีกลุ่มสรรพคุณ) → แสดงได้ทั้ง 2 หมวด */
                 cats:h.province ? (groups.length ? [PROVINCIAL, HERB_CATEGORIES[0]] : [PROVINCIAL]) : [HERB_CATEGORIES[0]], region:h.region || undefined, province:h.province || undefined};
       }));
