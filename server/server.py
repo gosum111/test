@@ -464,6 +464,10 @@ def init_db():
         for col in ("img", "status", "img_credit", "other_names", "verse", "verse_src"):
             if col not in have:
                 con.execute(f"ALTER TABLE herbs ADD COLUMN {col} TEXT NOT NULL DEFAULT ''")
+        have = {r[1] for r in con.execute("PRAGMA table_info(pages)")}
+        for col in ("title_en", "body_en"):   # หน้าเนื้อหาภาษาอังกฤษ (ว่าง = แสดงภาษาไทย)
+            if col not in have:
+                con.execute(f"ALTER TABLE pages ADD COLUMN {col} TEXT NOT NULL DEFAULT ''")
         for t in SOFT_TABLES:   # ถังขยะ: deleted_at ว่าง = ใช้งานอยู่, มีค่า = อยู่ในถังขยะ
             if "deleted_at" not in {r[1] for r in con.execute(f"PRAGMA table_info({t})")}:
                 con.execute(f"ALTER TABLE {t} ADD COLUMN deleted_at TEXT")
@@ -1433,7 +1437,7 @@ class Handler(SimpleHTTPRequestHandler):
                 "brochures": rows(f"SELECT * FROM brochures WHERE {LIVE} ORDER BY id DESC"),
                 "herbs": [{**h, "region": PROVINCE_REGION.get(h["province"], "")}
                           for h in rows(f"SELECT * FROM herbs WHERE {LIVE} ORDER BY id")],
-                "pages": rows("SELECT key, title, body, img FROM pages"),
+                "pages": rows("SELECT key, title, body, img, title_en, body_en FROM pages"),
                 "activities": rows(f"SELECT * FROM activities WHERE {LIVE} ORDER BY {ORDER['activities']}"),
                 "services": rows(f"SELECT * FROM services WHERE {LIVE} ORDER BY {ORDER['services']}"),
                 "events": rows(f"SELECT * FROM events WHERE {LIVE} ORDER BY date"),
@@ -1539,9 +1543,10 @@ class Handler(SimpleHTTPRequestHandler):
             if not title:
                 raise ApiError(400, "กรุณากรอกชื่อหน้า")
             with db() as con:
-                cur = con.execute("UPDATE pages SET title=?, body=?, img=?, is_sample=0, "
+                cur = con.execute("UPDATE pages SET title=?, body=?, img=?, title_en=?, body_en=?, is_sample=0, "
                                   "updated_at=datetime('now','localtime') WHERE id=?",
-                                  (title, str(d.get("body", "")), str(d.get("img", "")).strip(), mp.group(1)))
+                                  (title, str(d.get("body", "")), str(d.get("img", "")).strip(),
+                                   str(d.get("title_en", "")).strip(), str(d.get("body_en", "")), mp.group(1)))
                 if cur.rowcount == 0:
                     raise ApiError(404, "ไม่พบหน้านี้")
             return rows("SELECT * FROM pages WHERE id=?", (mp.group(1),))[0]

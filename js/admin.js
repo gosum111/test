@@ -43,7 +43,9 @@ const FORMS = {
   pages: {title:"หน้าเนื้อหา", fixed:true, fields:[   /* fixed = แก้ได้อย่างเดียว ไม่มีเพิ่ม/ลบ */
     ["title","ชื่อหน้า *","text"],
     ["img","รูปหัวหน้า (แนวนอน)","image"],
-    ["body","เนื้อหา — พิมพ์ข้อความธรรมดาได้เลย: เว้น 1 บรรทัด = ย่อหน้าใหม่ · \"## หัวข้อ\" = หัวข้อ · \"- 2528: ก่อตั้งสวน\" = เส้นเวลา · \"- ข้อความ\" = รายการ","textarea",null,16]]},
+    ["body","เนื้อหา — พิมพ์ข้อความธรรมดาได้เลย: เว้น 1 บรรทัด = ย่อหน้าใหม่ · \"## หัวข้อ\" = หัวข้อ · \"- 2528: ก่อตั้งสวน\" = เส้นเวลา · \"- ข้อความ\" = รายการ","textarea",null,16],
+    ["title_en","ชื่อหน้า ภาษาอังกฤษ (แสดงเมื่อผู้ชมกดปุ่ม EN)","text"],
+    ["body_en","เนื้อหา ภาษาอังกฤษ — รูปแบบเดียวกับเนื้อหาภาษาไทย · เว้นว่าง = โหมด EN แสดงเนื้อหาภาษาไทยแทน","textarea",null,16]]},
   herbs: {title:"สมุนไพร", fields:[
     ["th","ชื่อภาษาไทย *","text"],
     ["en","ชื่อภาษาอังกฤษ","text"],
@@ -292,6 +294,13 @@ const PREVIEWS = {
     <section style="padding:28px 32px">
       <h1 style="font-size:36px;line-height:1.3;margin-bottom:20px">${esc(d.title)}</h1>
       <div class="prose" style="padding-bottom:20px">${richText(d.body)}</div>
+    </section>
+    <hr style="border:0;border-top:1px dashed #d5cfe0;margin:0 28px">
+    <section style="padding:28px 32px" lang="en">
+      ${PV_LABEL("เมื่อผู้ชมกดปุ่ม EN (ภาษาอังกฤษ)")}
+      ${String(d.body_en || "").trim() ? `<h1 style="font-size:36px;line-height:1.3;margin-bottom:20px">${esc(d.title_en || d.title)}</h1>
+      <div class="prose" style="padding-bottom:20px">${richText(d.body_en)}</div>`
+      : `<p style="color:#9a5b00">ยังไม่มีเนื้อหาภาษาอังกฤษ — โหมด EN จะแสดงเนื้อหาภาษาไทยด้านบน พร้อมข้อความ "This page is currently available in Thai only."</p>`}
     </section>`,
   /* สมุนไพร: ป้าย QR ที่จะติดต้นไม้ + หน้าของพืชที่ผู้เข้าชมเห็นหลังสแกน */
   herbs: d => {

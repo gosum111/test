@@ -50,7 +50,11 @@ async function apiLoadPublic(){
     /* หน้าเนื้อหาที่แก้จากหน้าแอดมิน (ประวัติ, อาคาร, รางวัล, นโยบายคุกกี้) */
     (d.pages || []).forEach(pg => {
       if(!ROUTES[pg.key]) return;
-      Object.assign(ROUTES[pg.key], {t:pg.title, img:pg.img, body:() => `<div class="prose">${richText(pg.body)}</div>`});
+      /* โหมดอังกฤษ: ใช้เนื้อหาภาษาอังกฤษถ้าแอดมินใส่ไว้ · ยังไม่มี → แสดงภาษาไทยพร้อมหมายเหตุ */
+      const en = IS_EN && String(pg.body_en || "").trim();
+      Object.assign(ROUTES[pg.key], {t:IS_EN && pg.title_en ? pg.title_en : pg.title, img:pg.img,
+        body:() => en ? `<div class="prose" lang="en">${richText(pg.body_en)}</div>`
+          : `${IS_EN ? `<p class="en-only-th">This page is currently available in Thai only.</p>` : ""}<div class="prose">${richText(pg.body)}</div>`});
     });
     window.DATA_LOADED = true;
     /* วาดหน้าที่เปิดอยู่ใหม่ด้วยข้อมูลล่าสุด (หน้าแรก: ข่าว, บริการ, กิจกรรม, ปฏิทิน, Workshop) */
