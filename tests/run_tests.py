@@ -121,6 +121,48 @@ def test_crud_trash_restore(tok):
     call(f"/api/news/{n['id']}", token=tok, method="DELETE")
 
 
+def test_bilingual(tok):
+    print("\n[สองภาษา: ช่องภาษาอังกฤษ]")
+    # ทุกตารางที่มีช่อง *_en: บันทึกแล้วอ่านกลับได้ (กันลืมใส่ฟิลด์ใน RESOURCES)
+    cases = {"news": {"title": "ข่าว 2 ภาษา", "type": "ข่าวสาร", "title_en": "Bilingual news", "detail_en": "EN detail"},
+             "articles": {"title": "บทความ 2 ภาษา", "title_en": "Bilingual article", "excerpt_en": "EN excerpt", "body_en": "EN body"},
+             "activities": {"title": "กิจกรรม 2 ภาษา", "date": "2026-01-01", "title_en": "Bilingual activity", "excerpt_en": "x", "body_en": "y"},
+             "workshops": {"name": "เวิร์กช็อป 2 ภาษา", "name_en": "Bilingual workshop", "detail_en": "EN"},
+             "services": {"title": "บริการ 2 ภาษา", "title_en": "Bilingual service"},
+             "events": {"title": "อีเวนต์ 2 ภาษา", "date": "2026-01-02", "kind": "event", "title_en": "Bilingual event", "detail_en": "EN"},
+             "brochures": {"title": "โบรชัวร์ 2 ภาษา", "type": "แนะนำ", "title_en": "Bilingual brochure", "file_en": "images/x.pdf"},
+             "map_spots": {"kind": "place", "num": "99", "icon": "A", "title": "จุด 2 ภาษา", "title_en": "Bilingual spot", "detail_en": "EN"},
+             "herbs": {"th": "พืช 2 ภาษา", "detail_en": "EN description", "uses_en": "EN uses"}}
+    made, bad = [], []
+    for t, body in cases.items():
+        s, r = call(f"/api/{t}", body, tok)
+        if s != 201 or any(r.get(k) != v for k, v in body.items() if k.endswith("_en")):
+            bad.append(f"{t}:{s}")
+            continue
+        made.append((t, r))
+    check("บันทึกช่องภาษาอังกฤษได้ทุกตาราง", not bad, ", ".join(bad))
+    pub = call("/api/public")[1]
+    check("API สาธารณะส่งช่องภาษาอังกฤษ", any(n.get("title_en") == "Bilingual news" for n in pub["news"])
+          and any(m.get("title_en") == "Bilingual spot" for m in pub["map_spots"]))
+    # แก้โดยไม่ส่งช่องภาษาอังกฤษ (เช่น หน้าแอดมินรุ่นเก่า) → คำแปลเดิมต้องยังอยู่
+    t, r = next(x for x in made if x[0] == "news")
+    s, r2 = call(f"/api/news/{r['id']}", {"title": "ข่าว 2 ภาษา (แก้)", "type": "ข่าวสาร"}, tok, "PUT")
+    check("แก้ข่าวโดยไม่ส่งช่องอังกฤษ → คำแปลเดิมไม่หาย", s == 200 and r2["title_en"] == "Bilingual news" and r2["detail_en"] == "EN detail")
+    s, r3 = call(f"/api/news/{r['id']}", {"title": "ข่าว 2 ภาษา", "type": "ข่าวสาร", "title_en": ""}, tok, "PUT")
+    check("ส่งช่องอังกฤษว่างมา = ตั้งใจลบคำแปล", s == 200 and r3["title_en"] == "" and r3["detail_en"] == "EN detail")
+    call(f"/api/news/{r['id']}", {"title": "ข่าว 2 ภาษา", "type": "ข่าวสาร", "title_en": "Bilingual news"}, tok, "PUT")   # ใช้ต่อในเบราว์เซอร์
+    pg = call("/api/pages", token=tok)[1][0]
+    call(f"/api/pages/{pg['id']}", {"title": pg["title"], "body": pg["body"], "img": pg["img"], "title_en": "T-EN", "body_en": "B-EN"}, tok, "PUT")
+    s, pg2 = call(f"/api/pages/{pg['id']}", {"title": pg["title"], "body": pg["body"], "img": pg["img"]}, tok, "PUT")
+    check("แก้หน้าเนื้อหาโดยไม่ส่งช่องอังกฤษ → คำแปลเดิมไม่หาย", s == 200 and pg2["title_en"] == "T-EN" and pg2["body_en"] == "B-EN")
+    call(f"/api/pages/{pg['id']}", {k: pg[k] for k in ("title", "body", "img", "title_en", "body_en")}, tok, "PUT")   # คืนค่าเดิม
+    news_id = r["id"]
+    for t, x in made:
+        if t != "news":
+            call(f"/api/{t}/{x['id']}", token=tok, method="DELETE")
+    return news_id   # ข่าวที่มีชื่อภาษาอังกฤษ ใช้ทดสอบในเบราว์เซอร์ต่อ
+
+
 def test_site_and_map(tok):
     print("\n[ตั้งค่าเว็บไซต์ / แผนผังสวน / เปลี่ยนรหัส]")
     s, st = call("/api/settings", token=tok)
@@ -232,6 +274,9 @@ def test_login_lockout():
     check("ระหว่างล็อก รหัสถูกก็เข้าไม่ได้", call("/api/login", {"password": PW})[0] == 429)
 
 
+BI_NEWS = None
+
+
 def test_browser():
     exe = next((p for p in (r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
                             r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
@@ -318,7 +363,25 @@ def test_browser():
         check("ป้ายแบบสวน: กดบันทึกแล้วข้อมูลพืชเปลี่ยนจริง", "วรรคสาม" in h["verse"] and h["detail"].startswith("วงศ์ Testaceae ·"), str(h)[:200])
         check("ป้ายแบบสวน: บันทึกป้ายไม่ทับข้อมูลที่แก้จากที่อื่นระหว่างนั้น",
               h["uses"] == "สรรพคุณแก้จากฟอร์ม" and h["detail"] == "วงศ์ Testaceae · ลักษณะแก้จากฟอร์ม", str(h)[:200])
+        # แก้เนื้อหาภาษาไทยของหน้าที่มีคำแปลอยู่ แต่ไม่แก้ภาษาอังกฤษ → ฟอร์มเตือน
+        b.js("document.querySelector('#tabs button[data-t=\"pages\"]').click()")
+        b.wait("document.querySelector('#list [data-edit]')")
+        b.js("document.querySelector('#list [data-edit]').click()")
+        b.wait("document.querySelector('#dlg').open")
+        b.js("{const f=document.querySelector('#fields [name=body_en]'); if(!f.value.trim()){f.value='EN text'; f.dispatchEvent(new Event('input',{bubbles:true}))}}")
+        b.js("{const e=document.querySelector('#fields [name=body]'); editing.body_en=document.querySelector('#fields [name=body_en]').value; e.value+=' แก้'; e.dispatchEvent(new Event('input',{bubbles:true}))}")
+        check("ฟอร์ม: แก้ภาษาไทยแต่ไม่แก้อังกฤษ → มีคำเตือน", b.wait("(document.querySelector('#enWarn')||{textContent:''}).textContent.includes('เนื้อหา')"))
+        b.js("document.querySelector('#dlg').close()")
+        check("ชื่อวงศ์: ข้อความไม่มี · ไม่ทำให้วงศ์ซ้อน", b.js("setFamily('วงศ์ FABACEAE ไม้ยืนต้น', 'Fabaceae') === 'วงศ์ Fabaceae · ไม้ยืนต้น' && signFamily('วงศ์ FABACEAE ไม้ยืนต้น') === 'FABACEAE'"))
+        check("ป้ายหลายแผ่น: id กราฟิกไม่ซ้ำ", b.js(r"{const h=gardenSignHtml({id:1,th:'x'},'http://a')+gardenSignHtml({id:2,th:'y'},'http://a'); const ids=[...h.matchAll(/id=\x22([^\x22]+)\x22/g)].map(m=>m[1]); ids.length>=6 && new Set(ids).size===ids.length}"))
         check("แอดมิน: ไม่มี JavaScript error", not js_err(), "; ".join(js_err()))
+        # โหมดภาษาอังกฤษ: ข่าวที่มีชื่อภาษาอังกฤษ + หัวข้อหน้าแรกแปลทั้งก้อน
+        if BI_NEWS:
+            b.goto(f"{BASE}/news/{BI_NEWS}?lang=en", settle=1.5)
+            check("โหมด EN: ข่าวแสดงชื่อภาษาอังกฤษ", b.wait("document.title.startsWith('Bilingual news')"))
+            b.goto(BASE + "/?lang=en", settle=1.5)
+            check("โหมด EN: หัวข้อหน้าแรกแปลทั้งก้อน", b.js(r"document.querySelector('.hero h1').innerHTML.replace(/\s+/g,' ') === 'Her Royal Highness Princess Maha Chakri Sirindhorn<br>Herb Garden'"))
+            b.goto(BASE + "/?lang=th", settle=0.5)   # คืนเป็นภาษาไทย
     finally:
         b.close()
 
@@ -338,6 +401,8 @@ def main():
         tok = login()
         test_crud_trash_restore(tok)
         test_site_and_map(tok)
+        global BI_NEWS
+        BI_NEWS = test_bilingual(tok)
         test_import(tok)
         test_backup(tok)
         test_contact_and_spam()

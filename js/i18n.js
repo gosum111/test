@@ -31,8 +31,6 @@ const I18N_EN = {
   /* ---- ชื่อเว็บ / แถบบน ---- */
   "สวนสมุนไพรสมเด็จพระเทพฯ": "Princess Sirindhorn Herb Garden",
   "สวนสมุนไพรสมเด็จพระเทพรัตนราชสุดาฯ สยามบรมราชกุมารี": "Her Royal Highness Princess Maha Chakri Sirindhorn Herb Garden",
-  /* หัวข้อใหญ่หน้าแรก (2 บรรทัด) */
-  "สวนสมุนไพรสมเด็จพระเทพรัตนราชสุดาฯ": "Her Royal Highness Princess Maha Chakri Sirindhorn", "สยามบรมราชกุมารี": "Herb Garden",
   "เว็บไซต์ทดลอง": "Trial website",
   "(ต้นแบบเพื่อการศึกษา) — ไม่ใช่เว็บไซต์ทางการของสวนสมุนไพรฯ หรือ บริษัท ปตท. จำกัด (มหาชน) · ข้อมูลบางส่วนเป็นข้อมูลตัวอย่าง":
     "(a study prototype) — not the official website of the Herb Garden or PTT Public Company Limited · some information is sample data",
@@ -254,6 +252,8 @@ function i18nInit(){
   }
   if (IS_EN) document.body.classList.add("lang-en");
   if (!IS_EN) return;
+  /* ข้อความที่แบ่งหลายบรรทัด (เช่น หัวข้อหน้าแรก) → แปลทั้งก้อนจาก data-en (แปลทีละท่อนจะได้ความหมายผิด) */
+  document.querySelectorAll("[data-en]").forEach(el => { el.innerHTML = el.dataset.en; });
   i18nApply(document.body);
   document.title = t(document.title);
   new MutationObserver(ms => ms.forEach(m => {

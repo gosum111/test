@@ -284,7 +284,7 @@ function herbPage(h){
         ${row("สถานะการอนุรักษ์",h.status?statusBadge(h.status):"")}
       </dl>
     </div>
-    ${h.thOnly?`<p class="note" style="margin-top:24px">Detailed descriptions are currently available in Thai only.</p>`:""}
+    ${h.thOnly?`<p class="note" style="margin-top:24px">Some descriptions on this page are currently available in Thai only.</p>`:""}
     <section class="plant-sec"><h2>ลักษณะทั่วไป</h2><p>${desc||"-"}</p></section>
     <section class="plant-sec"><h2>สรรพคุณและการใช้ประโยชน์</h2><p>${h.use||"-"}</p>
       <p class="hs-warn">* ข้อมูลตามภูมิปัญญาการแพทย์แผนไทย ไม่ใช่คำแนะนำทางการแพทย์ ควรปรึกษาแพทย์หรือเภสัชกรก่อนใช้</p></section>

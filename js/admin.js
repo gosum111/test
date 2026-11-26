@@ -406,6 +406,19 @@ const PREVIEWS = {
   }
 };
 
+/* แก้ข้อความภาษาไทยแล้ว แต่ช่องภาษาอังกฤษคู่กัน (มีคำแปลอยู่) ไม่ได้แก้ → เตือนว่าโหมด EN ยังแสดงข้อความเก่า */
+function enStaleWarn(d){
+  let w = $("#enWarn");
+  if(!w){ w = Object.assign(document.createElement("p"), {id:"enWarn", className:"hint"}); w.style.color = "#9a5b00"; $("#formErr").before(w); }
+  const fields = FORMS[tab].fields, names = new Set(fields.map(([k]) => k));
+  const stale = !editing ? [] : fields.filter(([k]) => k !== "file" && names.has(k + "_en")
+    && (d[k] ?? "") !== String(editing[k] ?? "")                                     /* ภาษาไทยเปลี่ยน */
+    && String(editing[k + "_en"] ?? "").trim()                                       /* มีคำแปลเดิมอยู่ */
+    && (d[k + "_en"] ?? "") === String(editing[k + "_en"] ?? ""))                    /* แต่คำแปลไม่ได้แก้ */
+    .map(([, label]) => label.replace(/\s*[\(—*].*$/s, "").trim());
+  w.textContent = stale.length ? `⚠ แก้ "${stale.join('", "')}" ภาษาไทยแล้ว แต่ยังไม่ได้แก้ช่องภาษาอังกฤษคู่กัน — ผู้ชมที่กด EN จะยังเห็นข้อความเก่า` : "";
+}
+
 let pvTimer;
 function renderPreview(){
   clearTimeout(pvTimer);
@@ -417,6 +430,7 @@ function renderPreview(){
       <link rel="stylesheet" href="css/style.css"><style>body{margin:0;background:#fff}a{pointer-events:none}</style></head>
       <body>${PREVIEWS[tab](d)}</body></html>`;
     const changed = !editing || FORMS[tab].fields.some(([k]) => (d[k] ?? "") !== String(editing[k] ?? ""));
+    enStaleWarn(d);
     $("#pvState").textContent = editing ? (changed ? "— มีการแก้ไขที่ยังไม่ได้บันทึก" : "— ตรงกับที่แสดงอยู่ตอนนี้") : "— รายการใหม่ ยังไม่ได้บันทึก";
     $("#pvDot").classList.toggle("saved", !changed);
   }, 150);
@@ -824,8 +838,16 @@ const SIGN_CSS = `
 
 /* ชื่อวงศ์เก็บอยู่ต้นช่อง "ลักษณะทั่วไป" แบบ "วงศ์ XXX · …" (หน้าพืชบนเว็บอ่านจากตรงนี้ด้วย) */
 const FAMILY_RE = /^วงศ์\s+([^·]+?)\s*·\s*/;
-function signFamily(detail){ const m = String(detail || "").match(FAMILY_RE); return m ? m[1].trim() : ""; }
-function setFamily(detail, fam){ const rest = String(detail || "").replace(FAMILY_RE, ""); fam = fam.trim(); return fam ? `วงศ์ ${fam} · ${rest}` : rest; }
+const FAMILY_LOOSE_RE = /^วงศ์\s+(\S+)\s*/;   /* "วงศ์ FABACEAE ไม้ยืนต้น…" (ไม่มี ·) → ถือว่าคำแรกคือวงศ์ กันวงศ์ซ้อน 2 ชั้น */
+function signFamily(detail){ const s = String(detail || ""), m = s.match(FAMILY_RE) || s.match(FAMILY_LOOSE_RE); return m ? m[1].trim() : ""; }
+function setFamily(detail, fam){
+  const s = String(detail || ""), rest = FAMILY_RE.test(s) ? s.replace(FAMILY_RE, "") : s.replace(FAMILY_LOOSE_RE, "");
+  fam = fam.trim(); return fam ? `วงศ์ ${fam} · ${rest}` : rest;
+}
+
+/* id ของ gradient ใน SVG ต้องไม่ซ้ำกันทั้งหน้า (หลายป้าย/แก้แล้ววาดใหม่) — บางเบราว์เซอร์พิมพ์สีหายถ้า id ซ้ำ */
+let SIGN_UID = 0;
+function signSvg(svg, id){ const u = `${id}${++SIGN_UID}`; return svg.split(`id="${id}"`).join(`id="${u}"`).split(`url(#${id})`).join(`url(#${u})`); }
 
 function gardenSignHtml(h, site){
   const abs = u => { try{ return new URL(u, location.href).href; }catch(e){ return ""; } };   /* หน้าพิมพ์เป็น about:blank → ต้องใช้ลิงก์เต็ม */
@@ -836,8 +858,8 @@ function gardenSignHtml(h, site){
   const rows = [["ชื่ออื่น", esc(h.other_names || h.en || "")], ["ชื่อวิทยาศาสตร์", h.sci ? `<i>${esc(h.sci)}</i>` : ""], ["ชื่อวงศ์", esc(family.toUpperCase())]]
     .filter(r => r[1]).map(([k, v]) => `<div class="k">${k}</div><div>:</div><div class="v">${v}</div>`).join("");
   return `<div class="sg" data-id="${h.id || ""}">
-    <div class="pole l">${SIGN_POLE}</div><div class="pole r">${SIGN_POLE}</div>
-    <div class="pn">${SIGN_PANEL}
+    <div class="pole l">${signSvg(SIGN_POLE, "pg")}</div><div class="pole r">${signSvg(SIGN_POLE, "pg")}</div>
+    <div class="pn">${signSvg(SIGN_PANEL, "gp")}
       <div class="in">
         <div class="orn">❀</div>
         <div class="ti" style="font-size:${fs}pt">${esc(th)}</div>
@@ -923,7 +945,7 @@ function gardenSheet(all, kinds, copies, site, win){
       <div class="msg" id="edMsg"></div>
     </form>
     <script>
-      const A = window.opener || (parent !== window ? parent : null), site = ${JSON.stringify(site)};
+      const A = window.opener || (parent !== window ? parent : null), site = ${JSON.stringify(site).split("<").join("\\" + "u003c")};
       const data = ${JSON.stringify(Object.fromEntries(all.map(h => [h.id, h]))).split("<").join("\\" + "u003c")}, order = ${JSON.stringify(all.map(h => h.id))};
       const orig = JSON.parse(JSON.stringify(data));   /* ค่าตอนเปิด/บันทึกล่าสุด → ส่งเฉพาะช่องที่แก้ ไม่ทับงานที่แก้จากที่อื่น */
       const ed = document.getElementById("ed"), grid = document.getElementById("grid"), msg = document.getElementById("edMsg");

@@ -1555,11 +1555,13 @@ class Handler(SimpleHTTPRequestHandler):
             title = str(d.get("title", "")).strip()
             if not title:
                 raise ApiError(400, "กรุณากรอกชื่อหน้า")
+            vals = {"title": title, "body": str(d.get("body", "")), "img": str(d.get("img", "")).strip()}
+            for k in ("title_en", "body_en"):   # ไม่ได้ส่งมา = คงคำแปลเดิม
+                if k in d:
+                    vals[k] = str(d[k]).strip() if k == "title_en" else str(d[k])
             with db() as con:
-                cur = con.execute("UPDATE pages SET title=?, body=?, img=?, title_en=?, body_en=?, is_sample=0, "
-                                  "updated_at=datetime('now','localtime') WHERE id=?",
-                                  (title, str(d.get("body", "")), str(d.get("img", "")).strip(),
-                                   str(d.get("title_en", "")).strip(), str(d.get("body_en", "")), mp.group(1)))
+                cur = con.execute(f"UPDATE pages SET {', '.join(k + '=?' for k in vals)}, is_sample=0, "
+                                  "updated_at=datetime('now','localtime') WHERE id=?", (*vals.values(), mp.group(1)))
                 if cur.rowcount == 0:
                     raise ApiError(404, "ไม่พบหน้านี้")
             return rows("SELECT * FROM pages WHERE id=?", (mp.group(1),))[0]
@@ -1624,6 +1626,8 @@ class Handler(SimpleHTTPRequestHandler):
         if method in ("POST", "PUT"):
             data = self.read_json()
             vals = {f: str(data.get(f, "")).strip() for f in spec["fields"]}
+            if method == "PUT":   # ช่องภาษาอังกฤษ (*_en) ที่ไม่ได้ส่งมา = คงค่าเดิม (ไม่ล้างคำแปล เช่น หน้าแอดมินรุ่นเก่าที่เปิดค้างไว้)
+                vals = {f: v for f, v in vals.items() if not f.endswith("_en") or f in data}
             for f in spec["required"]:
                 if not vals[f]:
                     raise ApiError(400, f"กรุณากรอก {f}")
