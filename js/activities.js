@@ -75,7 +75,7 @@ function activityRoute(id){
     t: a.title, c: "โครงการและกิจกรรม", bg: "linear-gradient(160deg,#5d7a8c,#9fb3a0)", img: a.contain ? "images/activities.jpg" : a.img,
     body: () => `<article class="prose">
       <div class="act-meta" style="margin-bottom:20px"><span class="act-tag">${a.type}</span><span class="act-bar"></span><span class="act-date">${a.date}</span></div>
-      ${a.excerpt?`<p class="art-lead">${a.excerpt}</p>`:""}${richText(a.body)}
+      ${a.excerpt?`<p class="art-lead">${a.excerpt}</p>`:""}${a.thOnly?`<p class="en-only-th">This page is currently available in Thai only.</p>`:""}${richText(a.body)}
       <p style="margin-top:40px"><a class="btn btn-g" href="#/activities">← กลับไปหน้าโครงการและกิจกรรม</a></p></article>`
   };
 }

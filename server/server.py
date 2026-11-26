@@ -466,7 +466,8 @@ def init_db():
                 con.execute(f"ALTER TABLE herbs ADD COLUMN {col} TEXT NOT NULL DEFAULT ''")
         # ภาษาอังกฤษของเนื้อหาที่แอดมินพิมพ์ (ว่าง = โหมด EN แสดงภาษาไทย)
         for table, cols in (("pages", ("title_en", "body_en")), ("news", ("title_en", "detail_en")),
-                            ("articles", ("title_en", "excerpt_en", "body_en"))):
+                            ("articles", ("title_en", "excerpt_en", "body_en")),
+                            ("activities", ("title_en", "excerpt_en", "body_en")), ("workshops", ("name_en", "detail_en"))):
             have = {r[1] for r in con.execute(f"PRAGMA table_info({table})")}
             for col in cols:
                 if col not in have:
@@ -972,12 +973,13 @@ RESOURCES = {
     "news": {"fields": ["title", "type", "detail", "img", "title_en", "detail_en"], "required": ["title"]},
     "articles": {"fields": ["date", "title", "excerpt", "img", "body", "title_en", "excerpt_en", "body_en"],
                  "required": ["title"]},
-    "workshops": {"fields": ["name", "detail", "img"], "required": ["name"]},
+    "workshops": {"fields": ["name", "detail", "img", "name_en", "detail_en"], "required": ["name"]},
     "brochures": {"fields": ["title", "type", "file"], "required": ["title"]},
     "herbs": {"fields": ["th", "en", "sci", "detail", "uses", "groups", "province", "img", "status", "img_credit",
                          "other_names", "verse", "verse_src", "detail_en", "uses_en"],
               "required": ["th"]},
-    "activities": {"fields": ["type", "date", "title", "excerpt", "img", "contain", "body"], "required": ["title", "date"]},
+    "activities": {"fields": ["type", "date", "title", "excerpt", "img", "contain", "body", "title_en", "excerpt_en", "body_en"],
+                   "required": ["title", "date"]},
     "services": {"fields": ["title", "img", "link", "sort"], "required": ["title"]},
     "events": {"fields": ["kind", "date", "end_date", "title", "detail", "link"], "required": ["title", "date"]},
     "map_spots": {"fields": ["kind", "num", "icon", "title", "detail", "x", "y"], "required": ["title"]},

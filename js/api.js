@@ -17,7 +17,7 @@ async function apiLoadPublic(){
     NEWS.splice(0, NEWS.length, ...d.news.map(n => [en(n, "title"), n.type, en(n, "detail"), n.img, n.id, thOnly(n, "detail")]));
     ARTICLES.splice(0, ARTICLES.length, ...d.articles.map(a => ({id:a.id, date:a.date, title:en(a, "title"), excerpt:en(a, "excerpt"), img:a.img,
       body:en(a, "body"), thOnly:thOnly(a, "body")})));
-    WORKSHOPS.splice(0, WORKSHOPS.length, ...d.workshops.map(w => ({name:w.name, desc:w.detail, img:w.img})));
+    WORKSHOPS.splice(0, WORKSHOPS.length, ...d.workshops.map(w => ({name:en(w, "name"), desc:en(w, "detail"), img:w.img})));
     BROCHURES.splice(0, BROCHURES.length, ...d.brochures.map(b => [b.title, b.type, b.file]));
     if(d.herbs){
       HERB_DB.splice(0, HERB_DB.length, ...d.herbs.map(h => {
@@ -38,8 +38,8 @@ async function apiLoadPublic(){
     /* โครงการและกิจกรรม (วันที่ในฐานข้อมูลเป็น YYYY-MM-DD → หน้าเว็บใช้ วว/ดด/ปปปป) */
     if(d.activities){
       const dmy = s => { const [y, m, dd] = String(s).split("-"); return `${dd}/${m}/${y}`; };
-      ACTIVITIES.splice(0, ACTIVITIES.length, ...d.activities.map(a => ({id:a.id, type:a.type, date:dmy(a.date), title:a.title,
-        excerpt:a.excerpt, img:a.img, contain:!!a.contain, body:a.body})));
+      ACTIVITIES.splice(0, ACTIVITIES.length, ...d.activities.map(a => ({id:a.id, type:a.type, date:dmy(a.date), title:en(a, "title"),
+        excerpt:en(a, "excerpt"), img:a.img, contain:!!a.contain, body:en(a, "body"), thOnly:thOnly(a, "body")})));
     }
     /* บริการ (หน้าแรก): ขึ้นบรรทัดใหม่ในชื่อ → <br> */
     if(d.services) SERVICES.splice(0, SERVICES.length, ...d.services.map(s => ({title:s.title.replace(/\n/g, "<br>"), img:s.img, link:s.link})));
