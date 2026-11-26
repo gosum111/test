@@ -18,7 +18,7 @@ async function apiLoadPublic(){
     ARTICLES.splice(0, ARTICLES.length, ...d.articles.map(a => ({id:a.id, date:a.date, title:en(a, "title"), excerpt:en(a, "excerpt"), img:a.img,
       body:en(a, "body"), thOnly:thOnly(a, "body")})));
     WORKSHOPS.splice(0, WORKSHOPS.length, ...d.workshops.map(w => ({name:en(w, "name"), desc:en(w, "detail"), img:w.img})));
-    BROCHURES.splice(0, BROCHURES.length, ...d.brochures.map(b => [b.title, b.type, b.file]));
+    BROCHURES.splice(0, BROCHURES.length, ...d.brochures.map(b => [en(b, "title"), b.type, en(b, "file")]));
     if(d.herbs){
       HERB_DB.splice(0, HERB_DB.length, ...d.herbs.map(h => {
         const groups = h.groups ? h.groups.split(",").map(s => s.trim()).filter(Boolean) : [];
@@ -52,7 +52,8 @@ async function apiLoadPublic(){
       renderSiteInfo();
     }
     /* แผนผังสวน (แก้ได้จากหน้าแอดมิน) */
-    if(d.map_spots) gmSetSpots(d.map_spots);
+    if(d.map_spots) gmSetSpots(d.map_spots.map(s => ({...s, title:en(s, "title"),
+      detail:IS_EN && String(s.detail_en || "").trim() ? s.detail_en : s.detail})));
     if(d.settings && d.settings.demo === "0"){ window.DEMO = false; applyDemo(false); }   /* เว็บจริง: ซ่อนแถบทดลอง */
 
     /* หน้าเนื้อหาที่แก้จากหน้าแอดมิน (ประวัติ, อาคาร, รางวัล, นโยบายคุกกี้) */

@@ -93,7 +93,9 @@ const FORMS = {
   brochures: {title:"โบรชัวร์", fields:[
     ["title","ชื่อโบรชัวร์ *","text"],
     ["type","ประเภท","select",["แนะนำ","แผนที่","สมุนไพร","กิจกรรม"]],
-    ["file","ไฟล์ PDF","pdf"]]},
+    ["file","ไฟล์ PDF","pdf"],
+    ["title_en","ชื่อโบรชัวร์ ภาษาอังกฤษ (แสดงเมื่อผู้ชมกดปุ่ม EN · เว้นว่าง = แสดงภาษาไทย)","text"],
+    ["file_en","ไฟล์ PDF ภาษาอังกฤษ (ถ้ามี · เว้นว่าง = โหมด EN ให้ดาวน์โหลดไฟล์ภาษาไทย)","pdf"]]},
   map_spots: {title:"จุดบนแผนผังสวน", fields:[
     ["kind","ประเภท","select",[["group","กลุ่มสรรพคุณสมุนไพร (หมุดตัวเลข)"],["place","อาคาร/สถานที่ (หมุดไอคอน)"]]],
     ["num","เลขกลุ่ม (กลุ่มสรรพคุณ) หรือ ลำดับการแสดง (อาคาร/สถานที่)","number"],
@@ -103,7 +105,9 @@ const FORMS = {
       [["arch","ซุ้มไม้เลื้อย"],["pond","สระน้ำ"],["shop","ร้านค้า"],["museum","พิพิธภัณฑ์/อาคาร"],["zodiac","ลานกลางแจ้ง"],
        ["lotus","สระบัว"],["pavilion","ศาลา"],["toilet","ห้องน้ำ"],["A","ตัวอักษร A"],["B","ตัวอักษร B"],["C","ตัวอักษร C"]]],
     ["x","ตำแหน่งหมุด แนวนอน x (0–100 = % จากซ้ายของภาพแผนผัง · เว้นว่าง = ไม่มีหมุด)","text"],
-    ["y","ตำแหน่งหมุด แนวตั้ง y (0–100 = % จากบนของภาพแผนผัง)","text"]]}
+    ["y","ตำแหน่งหมุด แนวตั้ง y (0–100 = % จากบนของภาพแผนผัง)","text"],
+    ["title_en","ชื่อ ภาษาอังกฤษ (แสดงเมื่อผู้ชมกดปุ่ม EN · เว้นว่าง = แสดงภาษาไทย)","text"],
+    ["detail_en","รายชื่อสมุนไพร / คำอธิบาย ภาษาอังกฤษ (กลุ่มสรรพคุณคั่นด้วย / เหมือนภาษาไทย)","textarea",null,4]]}
 };
 
 /* อ่านไฟล์เป็น data URL — รูปภาพจะถูกย่อให้ด้านยาวไม่เกิน 1600px และบีบอัดเป็น JPG (ไฟล์เล็กลง โหลดเว็บเร็วขึ้น)
@@ -451,8 +455,8 @@ function openForm(item){
       Object.entries(PROVINCES).map(([r, ps]) => `<optgroup label="${r}">${ps.map(p => `<option ${item && item[k] === p ? "selected" : ""}>${p}</option>`).join("")}</optgroup>`).join("")}</select></label>`;
     if(type === "textarea") return `<label>${esc(label)}<textarea name="${k}" rows="${rows || 3}">${v}</textarea></label>`;
     if(type === "image" || type === "pdf") return `<div class="imgrow"><label>${label} <span class="hint">พิมพ์ path/ลิงก์เอง หรือกดอัปโหลด (ไม่เกิน 5MB)</span><input name="${k}" value="${v}" placeholder="${type === "pdf" ? "images/uploads/brochure.pdf" : "images/news1.jpg"}"></label>
-      <label class="btn ghost" style="flex:none;margin:0;display:inline-block">อัปโหลด<input type="file" accept="${type === "pdf" ? "application/pdf" : "image/*"}" id="file" hidden></label></div>
-      ${type === "pdf" ? `<p class="hint" id="pdfLink" style="margin:6px 0 12px"></p>` : `<div style="height:12px"></div>`}`;
+      <label class="btn ghost" style="flex:none;margin:0;display:inline-block">อัปโหลด<input type="file" accept="${type === "pdf" ? "application/pdf" : "image/*"}" data-up="${k}" hidden></label></div>
+      ${type === "pdf" ? `<p class="hint" ${k === "file" ? 'id="pdfLink"' : ""} style="margin:6px 0 12px"></p>` : `<div style="height:12px"></div>`}`;
     return `<label>${label}<input name="${k}" value="${v}"></label>`;
   }).join("");
   const upIn = $('#fields [name="img"], #fields [name="file"]'), pv = $("#preview"), pl = $("#pdfLink");
@@ -465,15 +469,17 @@ function openForm(item){
   if(!upIn){ renderPreview(); $("#dlg").showModal(); return; }   /* สมุนไพร: ไม่มีช่องอัปโหลด */
   if(pv) pv.onerror = () => pv.style.display = "none";
   upIn.oninput = showPv; showPv();
-  $("#file").onchange = async e => {
+  /* ปุ่มอัปโหลดแต่ละช่อง (เช่น โบรชัวร์: PDF ภาษาไทย + PDF ภาษาอังกฤษ) */
+  document.querySelectorAll("#fields input[data-up]").forEach(fi => fi.onchange = async e => {
     const file = e.target.files[0]; if(!file) return;
+    const target = $(`#fields [name="${fi.dataset.up}"]`);
     $("#formErr").textContent = "กำลังอัปโหลด…";
     try{
       const data = await fileToUpload(file);
       const j = await api("upload", {method:"POST", body:JSON.stringify({data})});
-      upIn.value = j.path; showPv(); $("#formErr").textContent = "";
+      target.value = j.path; if(target === upIn) showPv(); else renderPreview(); $("#formErr").textContent = "";
     }catch(err){ $("#formErr").textContent = err.message; }
-  };
+  });
   $("#dlg").showModal();
 }
 

@@ -468,7 +468,8 @@ def init_db():
         for table, cols in (("pages", ("title_en", "body_en")), ("news", ("title_en", "detail_en")),
                             ("articles", ("title_en", "excerpt_en", "body_en")),
                             ("activities", ("title_en", "excerpt_en", "body_en")), ("workshops", ("name_en", "detail_en")),
-                            ("services", ("title_en",)), ("events", ("title_en", "detail_en"))):
+                            ("services", ("title_en",)), ("events", ("title_en", "detail_en")),
+                            ("brochures", ("title_en", "file_en")), ("map_spots", ("title_en", "detail_en"))):
             have = {r[1] for r in con.execute(f"PRAGMA table_info({table})")}
             for col in cols:
                 if col not in have:
@@ -975,7 +976,7 @@ RESOURCES = {
     "articles": {"fields": ["date", "title", "excerpt", "img", "body", "title_en", "excerpt_en", "body_en"],
                  "required": ["title"]},
     "workshops": {"fields": ["name", "detail", "img", "name_en", "detail_en"], "required": ["name"]},
-    "brochures": {"fields": ["title", "type", "file"], "required": ["title"]},
+    "brochures": {"fields": ["title", "type", "file", "title_en", "file_en"], "required": ["title"]},
     "herbs": {"fields": ["th", "en", "sci", "detail", "uses", "groups", "province", "img", "status", "img_credit",
                          "other_names", "verse", "verse_src", "detail_en", "uses_en"],
               "required": ["th"]},
@@ -983,7 +984,7 @@ RESOURCES = {
                    "required": ["title", "date"]},
     "services": {"fields": ["title", "img", "link", "sort", "title_en"], "required": ["title"]},
     "events": {"fields": ["kind", "date", "end_date", "title", "detail", "link", "title_en", "detail_en"], "required": ["title", "date"]},
-    "map_spots": {"fields": ["kind", "num", "icon", "title", "detail", "x", "y"], "required": ["title"]},
+    "map_spots": {"fields": ["kind", "num", "icon", "title", "detail", "x", "y", "title_en", "detail_en"], "required": ["title"]},
 }
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 ORDER = {"activities": "date DESC, id DESC", "services": "sort, id", "events": "date DESC, id DESC",
@@ -1450,7 +1451,7 @@ class Handler(SimpleHTTPRequestHandler):
                 "activities": rows(f"SELECT * FROM activities WHERE {LIVE} ORDER BY {ORDER['activities']}"),
                 "services": rows(f"SELECT * FROM services WHERE {LIVE} ORDER BY {ORDER['services']}"),
                 "events": rows(f"SELECT * FROM events WHERE {LIVE} ORDER BY date"),
-                "map_spots": rows(f"SELECT id, kind, num, icon, title, detail, x, y FROM map_spots "
+                "map_spots": rows(f"SELECT id, kind, num, icon, title, detail, x, y, title_en, detail_en FROM map_spots "
                                   f"WHERE {LIVE} ORDER BY {ORDER['map_spots']}"),
                 "settings": get_settings(),
             }
