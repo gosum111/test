@@ -183,7 +183,7 @@ form.cf .chk input{margin-top:5px}
 
 /* footer */
 footer{background:linear-gradient(135deg,#4e3274,#6f4c9b);color:#e6ddf3;padding:70px 0 30px;margin-top:40px}
-.foot{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px}
+.foot{display:grid;grid-template-columns:1fr;gap:40px}
 footer h4{font-family:"Prompt";color:#fff;font-size:18px;margin-bottom:14px;font-weight:500}
 footer p,footer li{font-size:15px;color:#d5c8e8}
 footer ul{list-style:none;display:grid;gap:8px}
