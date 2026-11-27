@@ -1224,6 +1224,7 @@ function renderSettings(){
     <div class="nf">
       <h3>📄 หน้าติดต่อเรา</h3>
       ${chk("site_show_info", "แสดงที่อยู่ เบอร์โทร อีเมล และเวลาทำการ ข้างฟอร์มส่งข้อความ")}
+      ${chk("site_show_foot", "แสดงที่อยู่ เบอร์โทร อีเมล ที่ส่วนท้ายของทุกหน้า")}
       ${chk("site_show_map", "แสดงแผนที่ Google Maps")}
       ${inp("site_map_query", "คำค้นหาตำแหน่งบนแผนที่ (ชื่อสถานที่ หรือพิกัด เช่น 12.7, 101.2)", "PTT Herb Garden Rayong")}
     </div>
@@ -1251,6 +1252,7 @@ $("#list").addEventListener("submit", async e => {
     const f = e.target, d = Object.fromEntries(new FormData(f));
     d.site_show_info = f.site_show_info.checked ? "1" : "0";
     d.site_show_map = f.site_show_map.checked ? "1" : "0";
+    d.site_show_foot = f.site_show_foot.checked ? "1" : "0";
     try{ cache = {...cache, ...await api("settings", {method:"PUT", body:JSON.stringify(d)})}; render(); toast("บันทึกข้อมูลเว็บไซต์แล้ว"); }
     catch(err){ alert(err.message); }
   }else if(e.target.id === "pwForm"){

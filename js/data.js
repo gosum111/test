@@ -15,7 +15,7 @@ const SITE={
   site_line:"",
   site_map_query:"PTT Herb Garden Rayong",
   site_address_en:"", site_hours_en:"",
-  site_show_info:"0", site_show_map:"0"
+  site_show_foot:"0", site_show_info:"0", site_show_map:"0"
 };
 const escHtml=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const sitePhones=()=>String(SITE.site_phones||"").split(",").map(s=>s.trim()).filter(Boolean);

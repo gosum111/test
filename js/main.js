@@ -65,7 +65,8 @@ function siteTxt(k){return IS_EN&&String(SITE[k+"_en"]||"").trim()?SITE[k+"_en"]
 /* ส่วนท้ายเว็บ: ที่อยู่ โทร อีเมล และปุ่มโซเชียล จากข้อมูลใน SITE */
 function renderSiteInfo(){
   const fc=$("#footContact"),fs=$("#footSocial");
-  if(fc) fc.innerHTML=[escHtml(siteTxt("site_address")).replace(/\n/g,"<br>"),
+  if(fc) fc.hidden=SITE.site_show_foot!=="1";   /* ซ่อนที่อยู่/โทร/อีเมลในส่วนท้าย จนกว่าแอดมินจะเปิด */
+  if(fc&&!fc.hidden) fc.innerHTML=[escHtml(siteTxt("site_address")).replace(/\n/g,"<br>"),
     sitePhones().length?"โทร "+sitePhones().map(telLink).join(", "):"",
     SITE.site_email?`<a href="mailto:${escHtml(SITE.site_email)}">${escHtml(SITE.site_email)}</a>`:""].filter(Boolean).join("<br>");
   if(fs) fs.innerHTML=[[SITE.site_facebook,"Facebook","f"],[SITE.site_youtube,"YouTube","▶"],[SITE.site_line,"LINE","L"]]
